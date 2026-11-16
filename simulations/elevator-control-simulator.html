@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elevator Control Simulator</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --line:#dbe3ee;
+      --text:#132033;
+      --muted:#667085;
+      --accent:#2563eb;
+      --green:#16a34a;
+      --orange:#f59e0b;
+      --red:#dc2626;
+      --building:#dfe7f2;
+      --shaft:#aebed1;
+      --floor:#8ba0b7;
+      --car:#334155;
+      --door:#cbd5e1;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .wrap{
+      max-width:1500px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#eef4ff,#ffffff);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px;
+      margin-bottom:18px;
+    }
+
+    .hero h1{
+      margin:0 0 8px;
+      font-size:30px;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:360px 1fr;
+      gap:18px;
+    }
+
+    .panel,.main{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 10px 28px rgba(0,0,0,0.05);
+    }
+
+    .section{
+      margin-bottom:16px;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fbfcfe;
+    }
+
+    .section h3{
+      margin:0 0 12px;
+      font-size:17px;
+    }
+
+    .row{
+      margin-bottom:12px;
+    }
+
+    .row:last-child{
+      margin-bottom:0;
+    }
+
+    label{
+      display:block;
+      font-weight:bold;
+      margin-bottom:6px;
+      font-size:14px;
+    }
+
+    .range-wrap{
+      display:grid;
+      grid-template-columns:1fr 90px;
+      gap:10px;
+      align-items:center;
+    }
+
+    input[type="range"], select{
+      width:100%;
+    }
+
+    .value{
+      text-align:center;
+      padding:8px 6px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      color:var(--accent);
+      font-weight:bold;
+      font-size:14px;
+    }
+
+    .btns{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    button{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      padding:10px 14px;
+      cursor:pointer;
+      font:inherit;
+      transition:.2s;
+    }
+
+    button:hover{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+
+    .primary{
+      background:var(--accent);
+      border-color:var(--accent);
+      color:#fff;
+    }
+
+    .primary:hover{
+      color:#fff;
+      opacity:.92;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(120px,1fr));
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .stat{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      padding:12px;
+    }
+
+    .stat small{
+      display:block;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .stat strong{
+      font-size:18px;
+    }
+
+    .canvas-box{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#f8fafc;
+      padding:10px;
+    }
+
+    canvas{
+      width:100%;
+      display:block;
+      border-radius:12px;
+      background:#fff;
+      border:1px solid #e5e7eb;
+    }
+
+    .note{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      margin-right:8px;
+      margin-bottom:8px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+
+    @media (max-width:1200px){
+      .grid{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(3,1fr)}
+    }
+
+    @media (max-width:700px){
+      .stats{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Elevator Control Simulator</h1>
+      <p>
+        A visual simulation for control systems, optimization, and operations. Test how elevator traffic changes under
+        normal conditions, morning up-peak, evening down-peak, and lunch-time mixed demand.
+      </p>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="section">
+          <h3>Simulation controls</h3>
+
+          <div class="row">
+            <label for="trafficMode">Traffic mode</label>
+            <select id="trafficMode">
+              <option value="normal">Normal mixed traffic</option>
+              <option value="uppeak">Morning up-peak</option>
+              <option value="downpeak">Evening down-peak</option>
+              <option value="lunch">Lunch-time mixed flow</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label for="arrivalRate">Passenger arrival rate</label>
+            <div class="range-wrap">
+              <input type="range" id="arrivalRate" min="0.4" max="4.0" step="0.1" value="1.6">
+              <div class="value" id="arrivalRateVal">1.6 /s</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="simSpeed">Simulation speed</label>
+            <div class="range-wrap">
+              <input type="range" id="simSpeed" min="0.5" max="3" step="0.1" value="1">
+              <div class="value" id="simSpeedVal">1.0x</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="doorTime">Door dwell time</label>
+            <div class="range-wrap">
+              <input type="range" id="doorTime" min="1" max="4" step="0.1" value="1.8">
+              <div class="value" id="doorTimeVal">1.8 s</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Presets</h3>
+          <div class="btns">
+            <button id="presetNormal">Normal</button>
+            <button id="presetPeak">Morning Peak</button>
+            <button id="presetEvening">Evening Peak</button>
+            <button id="presetHeavy">Heavy Congestion</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Actions</h3>
+          <div class="btns">
+            <button class="primary" id="pauseBtn">Pause</button>
+            <button id="resetBtn">Reset</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>What to observe</h3>
+          <div class="note">
+            Compare queue buildup, average wait time, elevator occupancy, and passenger throughput across different demand patterns.
+            Morning up-peak usually overloads the lobby queue, while evening down-peak creates high demand on upper floors.
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Legend</h3>
+          <div class="pill">Blue people = going up</div>
+          <div class="pill">Orange people = going down</div>
+          <div class="pill">Dark car = elevator</div>
+          <div class="pill">Sliding light panels = doors</div>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="stats">
+          <div class="stat">
+            <small>Simulation time</small>
+            <strong id="timeOut">0.0 s</strong>
+          </div>
+          <div class="stat">
+            <small>Passengers waiting</small>
+            <strong id="waitingOut">0</strong>
+          </div>
+          <div class="stat">
+            <small>Passengers served</small>
+            <strong id="servedOut">0</strong>
+          </div>
+          <div class="stat">
+            <small>Average wait</small>
+            <strong id="avgWaitOut">0.0 s</strong>
+          </div>
+          <div class="stat">
+            <small>Avg system time</small>
+            <strong id="avgSystemOut">0.0 s</strong>
+          </div>
+          <div class="stat">
+            <small>Elevator utilization</small>
+            <strong id="utilOut">0%</strong>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Lobby queue</small>
+            <strong id="lobbyQueueOut">0</strong>
+          </div>
+          <div class="stat">
+            <small>Upper-floor queue</small>
+            <strong id="upperQueueOut">0</strong>
+          </div>
+          <div class="stat">
+            <small>Max queue observed</small>
+            <strong id="maxQueueOut">0</strong>
+          </div>
+          <div class="stat">
+            <small>Car 1 load</small>
+            <strong id="car1Out">0/8</strong>
+          </div>
+          <div class="stat">
+            <small>Car 2 load</small>
+            <strong id="car2Out">0/8</strong>
+          </div>
+          <div class="stat">
+            <small>Car 3 load</small>
+            <strong id="car3Out">0/8</strong>
+          </div>
+        </div>
+
+        <div class="canvas-box">
+          <canvas id="simCanvas" width="1100" height="860"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("simCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const trafficMode = document.getElementById("trafficMode");
+    const arrivalRate = document.getElementById("arrivalRate");
+    const simSpeed = document.getElementById("simSpeed");
+    const doorTime = document.getElementById("doorTime");
+
+    const arrivalRateVal = document.getElementById("arrivalRateVal");
+    const simSpeedVal = document.getElementById("simSpeedVal");
+    const doorTimeVal = document.getElementById("doorTimeVal");
+
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const presetNormal = document.getElementById("presetNormal");
+    const presetPeak = document.getElementById("presetPeak");
+    const presetEvening = document.getElementById("presetEvening");
+    const presetHeavy = document.getElementById("presetHeavy");
+
+    const timeOut = document.getElementById("timeOut");
+    const waitingOut = document.getElementById("waitingOut");
+    const servedOut = document.getElementById("servedOut");
+    const avgWaitOut = document.getElementById("avgWaitOut");
+    const avgSystemOut = document.getElementById("avgSystemOut");
+    const utilOut = document.getElementById("utilOut");
+    const lobbyQueueOut = document.getElementById("lobbyQueueOut");
+    const upperQueueOut = document.getElementById("upperQueueOut");
+    const maxQueueOut = document.getElementById("maxQueueOut");
+    const car1Out = document.getElementById("car1Out");
+    const car2Out = document.getElementById("car2Out");
+    const car3Out = document.getElementById("car3Out");
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const FLOOR_COUNT = 10;
+    const ELEVATOR_COUNT = 3;
+    const CAR_CAPACITY = 8;
+
+    const buildingLeft = 150;
+    const buildingRight = 930;
+    const shaftTop = 70;
+    const shaftBottom = 790;
+    const floorGap = (shaftBottom - shaftTop) / (FLOOR_COUNT - 1);
+    const shaftXs = [460, 610, 760];
+    const shaftWidth = 90;
+    const carWidth = 72;
+    const carHeight = 42;
+
+    let simTime = 0;
+    let lastTime = 0;
+    let paused = false;
+    let passengerId = 0;
+
+    let passengers = [];
+    let waiting = Array.from({ length: FLOOR_COUNT }, () => []);
+    let elevators = [];
+    let arrivalAccumulator = 0;
+
+    let servedCount = 0;
+    let totalWait = 0;
+    let totalSystemTime = 0;
+    let maxQueueObserved = 0;
+    let busyTimeAccumulator = 0;
+    let totalElevatorTime = 0;
+
+    function floorToY(floor) {
+      return shaftBottom - floor * floorGap;
+    }
+
+    function yToFloor(y) {
+      return Math.round((shaftBottom - y) / floorGap);
+    }
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function choice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function updateLabels() {
+      arrivalRateVal.textContent = `${Number(arrivalRate.value).toFixed(1)} /s`;
+      simSpeedVal.textContent = `${Number(simSpeed.value).toFixed(1)}x`;
+      doorTimeVal.textContent = `${Number(doorTime.value).toFixed(1)} s`;
+    }
+
+    function createElevators() {
+      elevators = [];
+      for (let i = 0; i < ELEVATOR_COUNT; i++) {
+        elevators.push({
+          id: i + 1,
+          shaftX: shaftXs[i],
+          pos: 0,
+          target: null,
+          direction: 0,
+          state: "idle", // idle, moving, opening, open, closing
+          door: 0,
+          passengers: [],
+          serviceCooldown: 0,
+          dwell: 0,
+          busy: false
+        });
+      }
+    }
+
+    function createPassenger(source, dest) {
+      const dir = dest > source ? 1 : -1;
+      const p = {
+        id: ++passengerId,
+        source,
+        dest,
+        dir,
+        createdAt: simTime,
+        boardedAt: null,
+        servedAt: null,
+        elevatorId: null,
+        state: "waiting", // waiting, boarding, inElevator, exiting, done
+        x: buildingLeft + 85,
+        y: floorToY(source),
+        targetX: buildingLeft + 85,
+        targetY: floorToY(source),
+        color: dir > 0 ? "#2563eb" : "#f59e0b"
+      };
+      passengers.push(p);
+      waiting[source].push(p.id);
+    }
+
+    function generatePassenger() {
+      const mode = trafficMode.value;
+      let source, dest;
+
+      if (mode === "uppeak") {
+        if (Math.random() < 0.82) {
+          source = 0;
+          dest = Math.floor(rand(1, FLOOR_COUNT));
+        } else {
+          source = Math.floor(rand(1, FLOOR_COUNT));
+          do { dest = Math.floor(rand(1, FLOOR_COUNT)); } while (dest === source);
+        }
+      } else if (mode === "downpeak") {
+        if (Math.random() < 0.82) {
+          source = Math.floor(rand(1, FLOOR_COUNT));
+          dest = 0;
+        } else {
+          source = Math.floor(rand(1, FLOOR_COUNT));
+          do { dest = Math.floor(rand(1, FLOOR_COUNT)); } while (dest === source);
+        }
+      } else if (mode === "lunch") {
+        const r = Math.random();
+        if (r < 0.4) {
+          source = 0;
+          dest = Math.floor(rand(1, FLOOR_COUNT));
+        } else if (r < 0.8) {
+          source = Math.floor(rand(1, FLOOR_COUNT));
+          dest = 0;
+        } else {
+          source = Math.floor(rand(1, FLOOR_COUNT));
+          do { dest = Math.floor(rand(1, FLOOR_COUNT)); } while (dest === source);
+        }
+      } else {
+        source = Math.floor(rand(0, FLOOR_COUNT));
+        do { dest = Math.floor(rand(0, FLOOR_COUNT)); } while (dest === source);
+      }
+
+      createPassenger(source, dest);
+    }
+
+    function getPassengerById(id) {
+      return passengers.find(p => p.id === id);
+    }
+
+    function getWaitingCount() {
+      return waiting.reduce((sum, arr) => sum + arr.length, 0);
+    }
+
+    function getLobbyQueue() {
+      return waiting[0].length;
+    }
+
+    function getUpperQueue() {
+      let s = 0;
+      for (let i = 1; i < FLOOR_COUNT; i++) s += waiting[i].length;
+      return s;
+    }
+
+    function getCurrentFloor(e) {
+      return Math.round(e.pos);
+    }
+
+    function getAssignedTargets() {
+      return elevators
+        .filter(e => e.target !== null)
+        .map(e => e.target);
+    }
+
+    function getFloorsWithWaiting() {
+      const arr = [];
+      for (let f = 0; f < FLOOR_COUNT; f++) {
+        if (waiting[f].length > 0) arr.push(f);
+      }
+      return arr;
+    }
+
+    function getNearestFloor(fromFloor, floors) {
+      if (!floors.length) return null;
+      let best = floors[0];
+      let bestDist = Math.abs(best - fromFloor);
+      for (const f of floors) {
+        const d = Math.abs(f - fromFloor);
+        if (d < bestDist) {
+          best = f;
+          bestDist = d;
+        }
+      }
+      return best;
+    }
+
+    function chooseTarget(e) {
+      const currentFloor = getCurrentFloor(e);
+
+      const dropFloors = [...new Set(e.passengers.map(p => p.dest))];
+      const waitingFloors = getFloorsWithWaiting();
+      const otherTargets = getAssignedTargets().filter(t => t !== e.target);
+
+      if (dropFloors.includes(currentFloor)) {
+        return currentFloor;
+      }
+
+      const hasWaitingHere = waiting[currentFloor].length > 0;
+      if (hasWaitingHere && e.passengers.length < CAR_CAPACITY) {
+        return currentFloor;
+      }
+
+      if (dropFloors.length > 0) {
+        if (e.direction > 0) {
+          const ahead = dropFloors.filter(f => f >= currentFloor).sort((a,b) => a-b);
+          if (ahead.length) return ahead[0];
+        } else if (e.direction < 0) {
+          const behind = dropFloors.filter(f => f <= currentFloor).sort((a,b) => b-a);
+          if (behind.length) return behind[0];
+        }
+        return getNearestFloor(currentFloor, dropFloors);
+      }
+
+      let freeCalls = waitingFloors.filter(f => !otherTargets.includes(f));
+      if (!freeCalls.length) freeCalls = waitingFloors;
+
+      if (freeCalls.length > 0) {
+        return getNearestFloor(currentFloor, freeCalls);
+      }
+
+      return null;
+    }
+
+    function shouldOpenAtCurrentFloor(e) {
+      const floor = getCurrentFloor(e);
+      const drop = e.passengers.some(p => p.dest === floor);
+      const pick = waiting[floor].length > 0 && e.passengers.length < CAR_CAPACITY;
+      return drop || pick;
+    }
+
+    function updateElevator(e, dt) {
+      e.serviceCooldown -= dt;
+      e.busy = false;
+
+      if (e.state === "idle") {
+        if (shouldOpenAtCurrentFloor(e)) {
+          e.state = "opening";
+        } else {
+          e.target = chooseTarget(e);
+          if (e.target !== null) {
+            if (Math.abs(e.target - e.pos) < 0.01) {
+              e.state = "opening";
+            } else {
+              e.direction = e.target > e.pos ? 1 : -1;
+              e.state = "moving";
+            }
+          }
+        }
+      }
+
+      if (e.state === "moving") {
+        e.busy = true;
+        const speedFloorsPerSecond = 1.15;
+        const dir = e.target > e.pos ? 1 : -1;
+        e.direction = dir;
+        e.pos += dir * speedFloorsPerSecond * dt;
+
+        if ((dir > 0 && e.pos >= e.target) || (dir < 0 && e.pos <= e.target)) {
+          e.pos = e.target;
+          e.state = "opening";
+        }
+      }
+
+      if (e.state === "opening") {
+        e.busy = true;
+        e.door += dt * 2.2;
+        if (e.door >= 1) {
+          e.door = 1;
+          e.state = "open";
+          e.dwell = 0;
+          e.serviceCooldown = 0;
+        }
+      }
+
+      if (e.state === "open") {
+        e.busy = true;
+        e.dwell += dt;
+        const floor = getCurrentFloor(e);
+
+        const exitingPassengers = e.passengers.filter(p => p.dest === floor);
+        if (exitingPassengers.length > 0 && e.serviceCooldown <= 0) {
+          const p = exitingPassengers[0];
+          p.state = "exiting";
+          p.targetX = e.shaftX + 90;
+          p.targetY = floorToY(floor);
+          e.passengers = e.passengers.filter(x => x.id !== p.id);
+          e.serviceCooldown = 0.25;
+        } else {
+          const eligibleIds = waiting[floor].filter(id => {
+            const p = getPassengerById(id);
+            if (!p) return false;
+            if (e.passengers.length >= CAR_CAPACITY) return false;
+            if (e.passengers.length === 0) return true;
+            if (e.direction === 0) return true;
+            return p.dir === e.direction;
+          });
+
+          if (eligibleIds.length > 0 && e.serviceCooldown <= 0) {
+            const pid = eligibleIds[0];
+            const p = getPassengerById(pid);
+            waiting[floor] = waiting[floor].filter(id => id !== pid);
+            p.state = "boarding";
+            p.elevatorId = e.id;
+            p.targetX = e.shaftX;
+            p.targetY = floorToY(floor);
+            e.serviceCooldown = 0.25;
+          }
+        }
+
+        const stillNeedService =
+          e.passengers.some(p => p.dest === floor) ||
+          (waiting[floor].length > 0 && e.passengers.length < CAR_CAPACITY) ||
+          passengers.some(p => p.state === "boarding" && p.elevatorId === e.id) ||
+          passengers.some(p => p.state === "exiting" && p.elevatorId === e.id);
+
+        if (!stillNeedService && e.dwell >= Number(doorTime.value)) {
+          e.state = "closing";
+        }
+      }
+
+      if (e.state === "closing") {
+        e.busy = true;
+        e.door -= dt * 2.2;
+        if (e.door <= 0) {
+          e.door = 0;
+          const next = chooseTarget(e);
+          e.target = next;
+          if (next === null) {
+            e.state = "idle";
+            e.direction = 0;
+          } else if (Math.abs(next - e.pos) < 0.01) {
+            e.state = "opening";
+          } else {
+            e.direction = next > e.pos ? 1 : -1;
+            e.state = "moving";
+          }
+        }
+      }
+    }
+
+    function updatePassengers(dt) {
+      for (const p of passengers) {
+        if (p.state === "waiting") {
+          const queue = waiting[p.source];
+          const index = queue.indexOf(p.id);
+          const row = Math.floor(index / 10);
+          const col = index % 10;
+          p.targetX = buildingLeft + 85 + col * 14;
+          p.targetY = floorToY(p.source) - 10 - row * 12;
+        }
+
+        if (p.state === "boarding") {
+          const e = elevators.find(el => el.id === p.elevatorId);
+          if (e) {
+            p.targetX = e.shaftX;
+            p.targetY = floorToY(getCurrentFloor(e));
+          }
+        }
+
+        if (p.state === "inElevator") {
+          const e = elevators.find(el => el.id === p.elevatorId);
+          if (e) {
+            const idx = e.passengers.findIndex(x => x.id === p.id);
+            const col = idx % 3;
+            const row = Math.floor(idx / 3);
+            p.x = e.shaftX - 16 + col * 16;
+            p.y = floorToY(getCurrentFloor(e)) + 10 - row * 12;
+            continue;
+          }
+        }
+
+        if (p.state === "exiting") {
+          const e = elevators.find(el => el.id === p.elevatorId);
+          if (!e) {
+            p.targetX = buildingRight - 40;
+          }
+        }
+
+        const dx = p.targetX - p.x;
+        const dy = p.targetY - p.y;
+        const dist = Math.hypot(dx, dy);
+        const speed = 220 * dt;
+
+        if (dist > 1) {
+          p.x += (dx / dist) * Math.min(speed, dist);
+          p.y += (dy / dist) * Math.min(speed, dist);
+        } else {
+          p.x = p.targetX;
+          p.y = p.targetY;
+
+          if (p.state === "boarding") {
+            const e = elevators.find(el => el.id === p.elevatorId);
+            if (e && e.passengers.length < CAR_CAPACITY) {
+              p.state = "inElevator";
+              p.boardedAt = simTime;
+              totalWait += (p.boardedAt - p.createdAt);
+              e.passengers.push(p);
+              if (p.dest > getCurrentFloor(e)) e.direction = 1;
+              if (p.dest < getCurrentFloor(e)) e.direction = -1;
+            }
+          } else if (p.state === "exiting") {
+            p.state = "done";
+            p.servedAt = simTime;
+            servedCount++;
+            totalSystemTime += (p.servedAt - p.createdAt);
+          }
+        }
+      }
+
+      passengers = passengers.filter(p => p.state !== "done");
+    }
+
+    function updateArrivals(dt) {
+      arrivalAccumulator += Number(arrivalRate.value) * dt;
+      while (arrivalAccumulator >= 1) {
+        arrivalAccumulator -= 1;
+        generatePassenger();
+      }
+    }
+
+    function updateMetrics(dt) {
+      const waitingCount = getWaitingCount();
+      const lobbyQueue = getLobbyQueue();
+      const upperQueue = getUpperQueue();
+      maxQueueObserved = Math.max(maxQueueObserved, waitingCount);
+
+      totalElevatorTime += elevators.length * dt;
+      busyTimeAccumulator += elevators.filter(e => e.busy).length * dt;
+
+      timeOut.textContent = `${simTime.toFixed(1)} s`;
+      waitingOut.textContent = waitingCount;
+      servedOut.textContent = servedCount;
+      avgWaitOut.textContent = `${servedCount ? (totalWait / servedCount).toFixed(1) : "0.0"} s`;
+      avgSystemOut.textContent = `${servedCount ? (totalSystemTime / servedCount).toFixed(1) : "0.0"} s`;
+      utilOut.textContent = `${totalElevatorTime ? Math.round((busyTimeAccumulator / totalElevatorTime) * 100) : 0}%`;
+
+      lobbyQueueOut.textContent = lobbyQueue;
+      upperQueueOut.textContent = upperQueue;
+      maxQueueOut.textContent = maxQueueObserved;
+
+      car1Out.textContent = `${elevators[0].passengers.length}/8`;
+      car2Out.textContent = `${elevators[1].passengers.length}/8`;
+      car3Out.textContent = `${elevators[2].passengers.length}/8`;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      drawBackground();
+      drawFloors();
+      drawQueues();
+      drawElevators();
+      drawPassengers();
+      drawLabels();
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = "#eef4fa";
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = "#dde7f0";
+      ctx.fillRect(buildingLeft, 40, buildingRight - buildingLeft, 780);
+
+      ctx.fillStyle = "#c7d4e4";
+      ctx.fillRect(buildingLeft - 30, 40, 30, 780);
+
+      ctx.fillStyle = "#c7d4e4";
+      ctx.fillRect(buildingRight, 40, 30, 780);
+    }
+
+    function drawFloors() {
+      for (let f = 0; f < FLOOR_COUNT; f++) {
+        const y = floorToY(f);
+
+        ctx.strokeStyle = "#8ba0b7";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(buildingLeft, y);
+        ctx.lineTo(buildingRight, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#334155";
+        ctx.font = "bold 15px Arial";
+        ctx.fillText(`Floor ${f}`, 30, y + 5);
+      }
+
+      for (let i = 0; i < shaftXs.length; i++) {
+        const x = shaftXs[i];
+        ctx.fillStyle = "#aebed1";
+        ctx.fillRect(x - shaftWidth / 2, shaftTop - 15, shaftWidth, shaftBottom - shaftTop + 30);
+
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillRect(x - shaftWidth / 2 + 8, shaftTop - 8, shaftWidth - 16, shaftBottom - shaftTop + 16);
+      }
+    }
+
+    function drawQueues() {
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(`Lobby queue: ${waiting[0].length}`, buildingLeft + 20, floorToY(0) + 30);
+
+      let upper = 0;
+      for (let i = 1; i < FLOOR_COUNT; i++) upper += waiting[i].length;
+      ctx.fillText(`Upper-floor queue: ${upper}`, buildingLeft + 20, 55);
+    }
+
+    function drawElevators() {
+      for (const e of elevators) {
+        const y = floorToY(e.pos);
+
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(e.shaftX - carWidth / 2, y - carHeight / 2, carWidth, carHeight);
+
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(e.shaftX - carWidth / 2, y - carHeight / 2 - 14, carWidth, 10);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 12px Arial";
+        ctx.fillText(`E${e.id}`, e.shaftX - 10, y - carHeight / 2 - 6);
+
+        const half = carWidth / 2;
+        const doorGap = half * e.door;
+        const panelW = half - doorGap;
+
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fillRect(e.shaftX - half, y - carHeight / 2 + 2, panelW, carHeight - 4);
+        ctx.fillRect(e.shaftX + doorGap, y - carHeight / 2 + 2, panelW, carHeight - 4);
+
+        ctx.strokeStyle = "#111827";
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(e.shaftX - carWidth / 2, y - carHeight / 2, carWidth, carHeight);
+
+        // load dots
+        for (let i = 0; i < e.passengers.length; i++) {
+          const col = i % 3;
+          const row = Math.floor(i / 3);
+          const px = e.shaftX - 16 + col * 16;
+          const py = y + 10 - row * 12;
+          ctx.beginPath();
+          ctx.fillStyle = e.passengers[i].color;
+          ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // direction arrow
+        ctx.fillStyle = "#e2e8f0";
+        ctx.font = "bold 18px Arial";
+        const arrow = e.direction > 0 ? "↑" : e.direction < 0 ? "↓" : "•";
+        ctx.fillText(arrow, e.shaftX - 4, y + 6);
+      }
+    }
+
+    function drawPassengers() {
+      for (const p of passengers) {
+        if (p.state === "done") continue;
+
+        ctx.beginPath();
+        ctx.fillStyle = p.color;
+        ctx.arc(p.x, p.y, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(15,23,42,0.35)";
+        ctx.stroke();
+      }
+    }
+
+    function drawLabels() {
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText("Waiting area", buildingLeft + 20, shaftBottom + 48);
+
+      ctx.fillText("Elevator shafts", shaftXs[0] - 20, 28);
+
+      const modeText = {
+        normal: "Normal mixed traffic",
+        uppeak: "Morning up-peak",
+        downpeak: "Evening down-peak",
+        lunch: "Lunch-time mixed flow"
+      }[trafficMode.value];
+
+      ctx.fillStyle = "#334155";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(`Mode: ${modeText}`, 820, 28);
+    }
+
+    function resetSimulation() {
+      simTime = 0;
+      lastTime = 0;
+      passengerId = 0;
+      arrivalAccumulator = 0;
+      servedCount = 0;
+      totalWait = 0;
+      totalSystemTime = 0;
+      maxQueueObserved = 0;
+      busyTimeAccumulator = 0;
+      totalElevatorTime = 0;
+      waiting = Array.from({ length: FLOOR_COUNT }, () => []);
+      passengers = [];
+      createElevators();
+      updateMetrics(0);
+      draw();
+    }
+
+    function animate(ts) {
+      if (!lastTime) lastTime = ts;
+      let dt = (ts - lastTime) / 1000;
+      lastTime = ts;
+      if (dt > 0.04) dt = 0.04;
+
+      if (!paused) {
+        const s = Number(simSpeed.value);
+        dt *= s;
+        simTime += dt;
+
+        updateArrivals(dt);
+        for (const e of elevators) updateElevator(e, dt);
+        updatePassengers(dt);
+        updateMetrics(dt);
+      }
+
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    function setPreset(mode, rate, speed, dwell) {
+      trafficMode.value = mode;
+      arrivalRate.value = rate;
+      simSpeed.value = speed;
+      doorTime.value = dwell;
+      updateLabels();
+    }
+
+    arrivalRate.addEventListener("input", updateLabels);
+    simSpeed.addEventListener("input", updateLabels);
+    doorTime.addEventListener("input", updateLabels);
+
+    pauseBtn.addEventListener("click", () => {
+      paused = !paused;
+      pauseBtn.textContent = paused ? "Resume" : "Pause";
+    });
+
+    resetBtn.addEventListener("click", resetSimulation);
+
+    presetNormal.addEventListener("click", () => setPreset("normal", 1.6, 1.0, 1.8));
+    presetPeak.addEventListener("click", () => setPreset("uppeak", 2.4, 1.0, 1.8));
+    presetEvening.addEventListener("click", () => setPreset("downpeak", 2.4, 1.0, 1.8));
+    presetHeavy.addEventListener("click", () => setPreset("uppeak", 3.6, 1.0, 2.2));
+
+    updateLabels();
+    resetSimulation();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

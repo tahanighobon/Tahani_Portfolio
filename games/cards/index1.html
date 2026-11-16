@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logic Gate Matching Game</title>
+
+<style>
+:root{--bg:#020c12;--panel:#031923;--cyan:#10d8f5;--cyan2:#78efff;--white:#edf7ff;--muted:#86a6b2;--green:#58efba;--red:#ff6677}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:"Segoe UI",Arial,sans-serif;color:var(--white);background:linear-gradient(rgba(16,216,245,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(16,216,245,.025) 1px,transparent 1px),radial-gradient(circle at 50% -10%,rgba(0,213,255,.14),transparent 34%),linear-gradient(180deg,#020a0f,#03151d 55%,#01090d);background-size:32px 32px,32px 32px,auto,auto}
+.game{width:min(1150px,95%);margin:auto;padding:35px 0 55px}
+.header{text-align:center;margin-bottom:25px}
+.header .small{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.27em;text-transform:uppercase}
+.header h1{margin:10px 0 8px;font-size:clamp(36px,5vw,58px);font-weight:750;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 0 18px rgba(16,216,245,.14)}
+.header p{margin:auto;max-width:690px;color:var(--muted);font-size:13px;line-height:1.65}
+.header:after{content:"";display:block;width:110px;height:2px;margin:20px auto 0;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 9px var(--cyan)}
+.stats{display:flex;justify-content:center;gap:12px;margin:25px 0}
+.stat{min-width:115px;padding:9px 15px;text-align:center;border:1px solid rgba(16,216,245,.3);border-radius:6px;background:rgba(16,216,245,.035);box-shadow:inset 0 0 18px rgba(16,216,245,.025)}
+.stat strong{display:block;color:var(--cyan2);font-size:20px}
+.stat span{color:#688c99;font-size:8px;letter-spacing:.16em}
+.board{position:relative;padding:28px;border:2px solid rgba(16,216,245,.75);border-radius:15px;background:linear-gradient(rgba(16,216,245,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(16,216,245,.025) 1px,transparent 1px),linear-gradient(180deg,rgba(2,26,38,.97),rgba(1,13,20,.98));background-size:24px 24px,24px 24px,auto;box-shadow:0 0 24px rgba(16,216,245,.12),inset 0 0 45px rgba(16,216,245,.035),0 25px 70px rgba(0,0,0,.5)}
+.board:before,.board:after{content:"";position:absolute;top:-2px;width:55px;height:14px;border-top:2px solid var(--cyan)}
+.board:before{left:25px;border-left:2px solid var(--cyan)}.board:after{right:25px;border-right:2px solid var(--cyan)}
+.row-title{display:flex;align-items:center;gap:12px;margin:0 0 14px;color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+.row-title:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(16,216,245,.55),transparent)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:940px;margin:auto}
+.divider{display:flex;align-items:center;gap:14px;margin:27px 0;color:#547582;font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+.divider:before,.divider:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(16,216,245,.35),transparent)}
+.card{position:relative;width:100%;aspect-ratio:1/1.03;padding:0;border:0;background:transparent;cursor:pointer;perspective:1200px;transition:transform .18s ease}
+.card:hover:not(.matched){transform:translateY(-4px)}
+.card-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.75,.2,1)}
+.card.flipped .card-inner{transform:rotateY(180deg)}
+.card-front,.card-back{position:absolute;inset:0;overflow:hidden;border-radius:13px;backface-visibility:hidden;border:2px solid rgba(16,216,245,.76);background:#02131c;box-shadow:0 0 17px rgba(0,215,255,.11),inset 0 0 25px rgba(0,215,255,.04)}
+.card-back{transform:rotateY(180deg)}
+.card-front:before,.card-back:before{content:"";position:absolute;z-index:3;inset:8px;border:1px solid rgba(16,216,245,.22);border-radius:8px;pointer-events:none}
+.card img{width:100%;height:100%;display:block;object-fit:cover}
+.card.selected .card-front,.card.selected .card-back{border-color:var(--cyan2);box-shadow:0 0 0 1px rgba(120,239,255,.3),0 0 30px rgba(16,216,245,.35)}
+.card.matched{cursor:default}.card.matched .card-back{border-color:var(--green);box-shadow:0 0 27px rgba(88,239,186,.24)}
+.card.matched:after{content:"✓";position:absolute;z-index:10;right:11px;top:11px;width:30px;height:30px;display:grid;place-items:center;border-radius:5px;color:#00170f;background:var(--green);box-shadow:0 0 14px rgba(88,239,186,.5);font-weight:900}
+.card.wrong .card-back{border-color:var(--red);animation:shake .35s}
+@keyframes shake{25%{transform:rotateY(180deg) translateX(-5px)}50%{transform:rotateY(180deg) translateX(5px)}75%{transform:rotateY(180deg) translateX(-3px)}}
+.feedback{min-height:74px;margin-top:25px;padding:15px 17px;display:flex;align-items:center;justify-content:space-between;gap:15px;border:1px solid rgba(16,216,245,.28);border-radius:7px;background:rgba(2,24,34,.78)}
+.feedback-text strong{display:block;margin-bottom:5px;font-size:14px;letter-spacing:.05em;text-transform:uppercase}
+.feedback-text span{color:#789aa6;font-size:11px}
+.restart{padding:10px 17px;border:1px solid var(--cyan);border-radius:5px;color:#001117;background:linear-gradient(135deg,#10bdd6,#72efff);box-shadow:0 0 13px rgba(16,216,245,.16);font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.win{display:none;position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:20px;background:rgba(0,7,11,.92);backdrop-filter:blur(8px)}.win.show{display:flex}
+.win-box{width:min(500px,100%);padding:38px;text-align:center;border:2px solid var(--cyan);border-radius:12px;background:linear-gradient(rgba(16,216,245,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(16,216,245,.025) 1px,transparent 1px),linear-gradient(145deg,#03202c,#020d13);background-size:22px 22px,22px 22px,auto;box-shadow:0 0 40px rgba(16,216,245,.17),0 30px 80px rgba(0,0,0,.7)}
+.win-box .medal{width:75px;height:75px;margin:0 auto 18px;display:grid;place-items:center;border:2px solid var(--cyan);border-radius:8px;color:var(--cyan2);background:rgba(16,216,245,.05);font-size:32px;box-shadow:0 0 20px rgba(16,216,245,.2)}
+.win-box h2{margin:8px 0;font-size:31px;text-transform:uppercase;letter-spacing:.05em}.win-box p{color:var(--muted);line-height:1.6}
+@media(max-width:700px){.board{padding:17px 12px}.cards{gap:10px}.feedback{align-items:flex-start;flex-direction:column}}
+@media(max-width:480px){.cards{grid-template-columns:repeat(3,minmax(120px,1fr));overflow-x:auto;padding-bottom:8px}}
+</style>
+</head>
+
+<body>
+<div class="game">
+
+  <header class="header">
+    <div class="small">Digital Logic Challenge</div>
+    <h1>Match the Gate</h1>
+    <p>Reveal a logic gate from the upper row, then identify the function card that correctly matches it.</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <strong id="matches">0/3</strong>
+      <span>MATCHES</span>
+    </div>
+    <div class="stat">
+      <strong id="attempts">0</strong>
+      <span>ATTEMPTS</span>
+    </div>
+  </div>
+
+  <main class="board">
+    <div class="row-title">Logic Gates</div>
+    <div class="cards" id="topRow"></div>
+
+    <div class="divider">Select one gate, then find its matching function</div>
+
+    <div class="row-title">Gate Functions</div>
+    <div class="cards" id="bottomRow"></div>
+
+    <div class="feedback">
+      <div class="feedback-text">
+        <strong id="feedbackTitle">System Ready</strong>
+        <span id="feedbackMessage">Select one logic gate from the upper row.</span>
+      </div>
+      <button class="restart" id="restartButton">Restart</button>
+    </div>
+  </main>
+</div>
+
+<div class="win" id="win">
+  <div class="win-box">
+    <div class="medal">★</div>
+    <h2>All Gates Matched</h2>
+    <p>You successfully connected all three logic gates with their correct functions.</p>
+    <button class="restart" id="playAgainButton">Play Again</button>
+  </div>
+</div>
+
+<script>
+/*
+=========================================================
+IMAGE FILES
+
+Put this HTML file and all images in the SAME folder.
+
+Cover image:
+img.png
+
+Six card images:
+img1.png
+img2.png
+img3.png
+img4.png
+img5.png
+img6.png
+
+MATCHES:
+img1 <-> img4
+img2 <-> img5
+img3 <-> img6
+
+If your files are JPG instead, change .png below to .jpg.
+=========================================================
+*/
+
+const COVER_IMAGE = "img.png";
+
+const topCards = [
+  { id: "pair1", image: "img1.png" },
+  { id: "pair2", image: "img2.png" },
+  { id: "pair3", image: "img3.png" }
+];
+
+const bottomCards = [
+  { id: "pair1", image: "img4.png" },
+  { id: "pair2", image: "img5.png" },
+  { id: "pair3", image: "img6.png" }
+];
+
+const topRow = document.getElementById("topRow");
+const bottomRow = document.getElementById("bottomRow");
+
+const matchesElement = document.getElementById("matches");
+const attemptsElement = document.getElementById("attempts");
+
+const feedbackTitle = document.getElementById("feedbackTitle");
+const feedbackMessage = document.getElementById("feedbackMessage");
+
+const win = document.getElementById("win");
+
+let selectedTop = null;
+let selectedBottom = null;
+let matches = 0;
+let attempts = 0;
+let locked = false;
+
+function shuffle(array){
+  const copy = [...array];
+
+  for(let i = copy.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+
+  return copy;
+}
+
+function createCard(item, rowType){
+  const card = document.createElement("button");
+
+  card.type = "button";
+  card.className = "card";
+  card.dataset.id = item.id;
+  card.dataset.row = rowType;
+
+  card.innerHTML = `
+    <div class="card-inner">
+
+      <div class="card-front">
+        <img src="${COVER_IMAGE}" alt="Card cover">
+      </div>
+
+      <div class="card-back">
+        <img src="${item.image}" alt="Card image">
+      </div>
+
+    </div>
+  `;
+
+  card.addEventListener("click", function(){
+    selectCard(card, item, rowType);
+  });
+
+  return card;
+}
+
+function renderGame(){
+  topRow.innerHTML = "";
+  bottomRow.innerHTML = "";
+
+  /*
+  Top cards remain img1, img2, img3.
+  Bottom cards are shuffled so the player must match them.
+  */
+
+  topCards.forEach(function(item){
+    topRow.appendChild(
+      createCard(item, "top")
+    );
+  });
+
+  shuffle(bottomCards).forEach(function(item){
+    bottomRow.appendChild(
+      createCard(item, "bottom")
+    );
+  });
+}
+
+function selectCard(card, item, rowType){
+
+  if(
+    locked ||
+    card.classList.contains("matched")
+  ){
+    return;
+  }
+
+  if(rowType === "top"){
+    selectTopCard(card, item);
+  }else{
+    selectBottomCard(card, item);
+  }
+}
+
+function selectTopCard(card, item){
+
+  if(selectedTop && selectedTop.card === card){
+    card.classList.remove("flipped", "selected");
+    selectedTop = null;
+
+    setFeedback(
+      "Choose a top card",
+      "Select one card from the top row."
+    );
+
+    return;
+  }
+
+  if(selectedTop){
+    selectedTop.card.classList.remove(
+      "flipped",
+      "selected"
+    );
+  }
+
+  if(selectedBottom){
+    selectedBottom.card.classList.remove(
+      "flipped",
+      "selected"
+    );
+    selectedBottom = null;
+  }
+
+  card.classList.add("flipped", "selected");
+
+  selectedTop = {
+    card: card,
+    item: item
+  };
+
+  setFeedback(
+    "Top card selected",
+    "Now choose its matching card from the bottom row."
+  );
+}
+
+function selectBottomCard(card, item){
+
+  if(!selectedTop){
+
+    card.classList.add("flipped");
+
+    setFeedback(
+      "Choose a top card first",
+      "Start with one of the three cards in the top row."
+    );
+
+    setTimeout(function(){
+      if(!card.classList.contains("matched")){
+        card.classList.remove("flipped");
+      }
+    },700);
+
+    return;
+  }
+
+  if(selectedBottom){
+    selectedBottom.card.classList.remove(
+      "flipped",
+      "selected"
+    );
+  }
+
+  card.classList.add("flipped", "selected");
+
+  selectedBottom = {
+    card: card,
+    item: item
+  };
+
+  checkMatch();
+}
+
+function checkMatch(){
+
+  if(!selectedTop || !selectedBottom){
+    return;
+  }
+
+  locked = true;
+  attempts++;
+
+  attemptsElement.textContent = attempts;
+
+  const isMatch =
+    selectedTop.item.id === selectedBottom.item.id;
+
+  if(isMatch){
+    correctMatch();
+  }else{
+    wrongMatch();
+  }
+}
+
+function correctMatch(){
+
+  matches++;
+
+  selectedTop.card.classList.remove("selected");
+  selectedBottom.card.classList.remove("selected");
+
+  selectedTop.card.classList.add("matched");
+  selectedBottom.card.classList.add("matched");
+
+  matchesElement.textContent = matches + "/3";
+
+  setFeedback(
+    "Correct!",
+    "You found the matching pair."
+  );
+
+  selectedTop = null;
+  selectedBottom = null;
+  locked = false;
+
+  if(matches === 3){
+    setTimeout(function(){
+      win.classList.add("show");
+    },700);
+  }
+}
+
+function wrongMatch(){
+
+  const topCard = selectedTop.card;
+  const bottomCard = selectedBottom.card;
+
+  topCard.classList.add("wrong");
+  bottomCard.classList.add("wrong");
+
+  setFeedback(
+    "Not a match",
+    "Try another card."
+  );
+
+  setTimeout(function(){
+
+    topCard.classList.remove(
+      "flipped",
+      "selected",
+      "wrong"
+    );
+
+    bottomCard.classList.remove(
+      "flipped",
+      "selected",
+      "wrong"
+    );
+
+    selectedTop = null;
+    selectedBottom = null;
+    locked = false;
+
+  },1000);
+}
+
+function setFeedback(title,message){
+  feedbackTitle.textContent = title;
+  feedbackMessage.textContent = message;
+}
+
+function resetGame(){
+
+  selectedTop = null;
+  selectedBottom = null;
+
+  matches = 0;
+  attempts = 0;
+  locked = false;
+
+  matchesElement.textContent = "0/3";
+  attemptsElement.textContent = "0";
+
+  win.classList.remove("show");
+
+  setFeedback(
+    "Ready",
+    "Select one logic gate from the upper row."
+  );
+
+  renderGame();
+}
+
+document
+  .getElementById("restartButton")
+  .addEventListener("click",resetGame);
+
+document
+  .getElementById("playAgainButton")
+  .addEventListener("click",resetGame);
+
+renderGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Friction on an Inclined Plane</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --purple: #7c3aed;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 410px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .slider-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input[type="range"], select {
+      width: 100%;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      font-size: 15px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .secondary {
+      background: #ecfeff;
+      color: #0f766e;
+    }
+
+    .danger {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .formula-box, .scene-wrap, .chart-wrap, .notes-wrap {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    #sceneCanvas {
+      height: 430px;
+    }
+
+    #graphCanvas {
+      height: 250px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 14px;
+      height: 3px;
+      margin-right: 8px;
+      vertical-align: middle;
+      border-radius: 999px;
+    }
+
+    .parallel::before { background: #dc2626; }
+    .friction::before { background: #2563eb; }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-row {
+        grid-template-columns: 1fr;
+      }
+
+      #sceneCanvas {
+        height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Friction on an Inclined Plane</h1>
+      <p>
+        Explore how incline angle, mass, and friction affect whether a block remains at rest or slides down a slope.
+        Compare the downslope component of gravity with the maximum friction force, and observe the motion on the ramp.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="slider-box">
+          <label for="angleSlider">
+            Incline angle
+            <span class="value" id="angleValue">25°</span>
+          </label>
+          <input type="range" id="angleSlider" min="0" max="60" step="1" value="25" />
+        </div>
+
+        <div class="slider-box">
+          <label for="massSlider">
+            Block mass
+            <span class="value" id="massValue">5.0 kg</span>
+          </label>
+          <input type="range" id="massSlider" min="0.5" max="20" step="0.1" value="5.0" />
+        </div>
+
+        <div class="slider-box">
+          <label for="muSlider">
+            Coefficient of friction μ
+            <span class="value" id="muValue">0.35</span>
+          </label>
+          <input type="range" id="muSlider" min="0" max="1.2" step="0.01" value="0.35" />
+        </div>
+
+        <div class="slider-box">
+          <label for="gravitySlider">
+            Gravity
+            <span class="value" id="gravityValue">9.81 m/s²</span>
+          </label>
+          <input type="range" id="gravitySlider" min="1" max="20" step="0.01" value="9.81" />
+        </div>
+
+        <div class="slider-box">
+          <label for="surfaceSelect">Surface preset</label>
+          <select id="surfaceSelect">
+            <option value="0.05">Ice / very smooth (μ = 0.05)</option>
+            <option value="0.2">Wood on smooth surface (μ = 0.20)</option>
+            <option value="0.35" selected>Wood on wood (μ = 0.35)</option>
+            <option value="0.6">Rubber on concrete (μ = 0.60)</option>
+            <option value="0.9">Very rough surface (μ = 0.90)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="resetBtn">Reset Block</button>
+          <button class="secondary" id="gentleBtn">Gentle Ramp</button>
+          <button class="danger" id="steepBtn">Steep Ramp</button>
+        </div>
+
+        <div class="formula-box">
+          <h3>Key equations</h3>
+          <div class="formula">Weight = mg</div><br>
+          <div class="formula">Normal force = mg cosθ</div><br>
+          <div class="formula">Downslope force = mg sinθ</div><br>
+          <div class="formula">Maximum friction = μN</div><br>
+          <div class="formula">a = (mg sinθ - μmg cosθ) / m</div>
+
+          <div class="status" id="statusText">
+            The block stays at rest when friction can fully balance the downslope component of gravity.
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Weight</small>
+            <strong id="weightOut">49.05 N</strong>
+          </div>
+          <div class="stat">
+            <small>Normal force</small>
+            <strong id="normalOut">44.45 N</strong>
+          </div>
+          <div class="stat">
+            <small>Downslope gravity</small>
+            <strong id="parallelOut">20.73 N</strong>
+          </div>
+          <div class="stat">
+            <small>Max friction</small>
+            <strong id="frictionOut">15.56 N</strong>
+          </div>
+          <div class="stat">
+            <small>Acceleration</small>
+            <strong id="accelOut">1.03 m/s²</strong>
+          </div>
+          <div class="stat">
+            <small>State</small>
+            <strong id="stateOut">Sliding</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="scene-wrap">
+          <h2>Inclined Plane Simulation</h2>
+          <canvas id="sceneCanvas" width="920" height="430"></canvas>
+        </div>
+
+        <div class="chart-wrap">
+          <h2>Force Comparison</h2>
+          <canvas id="graphCanvas" width="920" height="250"></canvas>
+          <div class="legend">
+            <span class="parallel">Downslope gravity</span>
+            <span class="friction">Maximum friction</span>
+          </div>
+        </div>
+
+        <div class="notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>As the incline angle increases, the downslope component of gravity increases.</li>
+            <li>As friction increases, the block is more likely to stay at rest.</li>
+            <li>Mass changes both gravity and normal force, so the condition for sliding depends mainly on angle and friction.</li>
+            <li>The block begins to slide when the downslope force becomes greater than the maximum friction force.</li>
+          </ul>
+          <p>
+            A very good classroom question is: why does changing the mass not change whether the block starts sliding, when friction and gravity both depend on mass?
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding friction on an inclined plane.
+    </div>
+  </div>
+
+  <script>
+    const angleSlider = document.getElementById("angleSlider");
+    const massSlider = document.getElementById("massSlider");
+    const muSlider = document.getElementById("muSlider");
+    const gravitySlider = document.getElementById("gravitySlider");
+    const surfaceSelect = document.getElementById("surfaceSelect");
+
+    const angleValue = document.getElementById("angleValue");
+    const massValue = document.getElementById("massValue");
+    const muValue = document.getElementById("muValue");
+    const gravityValue = document.getElementById("gravityValue");
+
+    const weightOut = document.getElementById("weightOut");
+    const normalOut = document.getElementById("normalOut");
+    const parallelOut = document.getElementById("parallelOut");
+    const frictionOut = document.getElementById("frictionOut");
+    const accelOut = document.getElementById("accelOut");
+    const stateOut = document.getElementById("stateOut");
+    const statusText = document.getElementById("statusText");
+
+    const sceneCanvas = document.getElementById("sceneCanvas");
+    const sceneCtx = sceneCanvas.getContext("2d");
+
+    const graphCanvas = document.getElementById("graphCanvas");
+    const graphCtx = graphCanvas.getContext("2d");
+
+    const resetBtn = document.getElementById("resetBtn");
+    const gentleBtn = document.getElementById("gentleBtn");
+    const steepBtn = document.getElementById("steepBtn");
+
+    let blockPos = 0;
+    let blockVel = 0;
+    let lastTime = performance.now();
+
+    function fmt(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function getModel() {
+      const thetaDeg = parseFloat(angleSlider.value);
+      const theta = thetaDeg * Math.PI / 180;
+      const m = parseFloat(massSlider.value);
+      const mu = parseFloat(muSlider.value);
+      const g = parseFloat(gravitySlider.value);
+
+      const weight = m * g;
+      const normal = weight * Math.cos(theta);
+      const parallel = weight * Math.sin(theta);
+      const maxFriction = mu * normal;
+
+      let state = "At Rest";
+      let acceleration = 0;
+
+      if (parallel > maxFriction) {
+        acceleration = g * (Math.sin(theta) - mu * Math.cos(theta));
+        state = "Sliding";
+      }
+
+      return {
+        thetaDeg,
+        theta,
+        m,
+        mu,
+        g,
+        weight,
+        normal,
+        parallel,
+        maxFriction,
+        acceleration,
+        state
+      };
+    }
+
+    function updateText(m) {
+      angleValue.textContent = `${m.thetaDeg}°`;
+      massValue.textContent = `${m.m.toFixed(1)} kg`;
+      muValue.textContent = `${m.mu.toFixed(2)}`;
+      gravityValue.textContent = `${m.g.toFixed(2)} m/s²`;
+
+      weightOut.textContent = `${fmt(m.weight)} N`;
+      normalOut.textContent = `${fmt(m.normal)} N`;
+      parallelOut.textContent = `${fmt(m.parallel)} N`;
+      frictionOut.textContent = `${fmt(m.maxFriction)} N`;
+      accelOut.textContent = `${fmt(m.acceleration)} m/s²`;
+      stateOut.textContent = m.state;
+
+      if (m.state === "At Rest") {
+        statusText.textContent = "The block remains at rest because friction is strong enough to balance the downslope component of gravity.";
+      } else if (m.acceleration < 2) {
+        statusText.textContent = "The block slides, but the friction force still reduces the acceleration noticeably.";
+      } else {
+        statusText.textContent = "The incline is steep enough that gravity overcomes friction, so the block accelerates down the ramp.";
+      }
+    }
+
+    function resetBlock() {
+      blockPos = 0;
+      blockVel = 0;
+    }
+
+    function updatePhysics(dt) {
+      const m = getModel();
+      if (m.state === "Sliding") {
+        blockVel += m.acceleration * dt;
+        blockPos += blockVel * dt;
+      } else {
+        blockVel = 0;
+      }
+
+      blockPos = Math.max(0, Math.min(1, blockPos));
+      if (blockPos >= 1) {
+        blockPos = 1;
+        blockVel = 0;
+      }
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, label) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const head = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - head * Math.cos(angle - Math.PI / 6),
+        y2 - head * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x2 - head * Math.cos(angle + Math.PI / 6),
+        y2 - head * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+
+      if (label) {
+        ctx.font = "15px Arial";
+        ctx.fillText(label, x2 + 8, y2 + 5);
+      }
+    }
+
+    function drawScene() {
+      const m = getModel();
+      const ctx = sceneCtx;
+      const w = sceneCanvas.width;
+      const h = sceneCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, "#dbeafe");
+      bg.addColorStop(1, "#ffffff");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = "#dcfce7";
+      ctx.fillRect(0, h - 70, w, 70);
+
+      const pivotX = 180;
+      const pivotY = h - 70;
+      const rampLength = 520;
+
+      const endX = pivotX + rampLength * Math.cos(m.theta);
+      const endY = pivotY - rampLength * Math.sin(m.theta);
+
+      ctx.strokeStyle = "#6b7280";
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(pivotX, pivotY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      ctx.fillStyle = "#9ca3af";
+      ctx.beginPath();
+      ctx.moveTo(pivotX, pivotY);
+      ctx.lineTo(endX, pivotY);
+      ctx.lineTo(endX, endY);
+      ctx.closePath();
+      ctx.globalAlpha = 0.18;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      const t = 0.12 + 0.76 * blockPos;
+      const bx = pivotX + rampLength * t * Math.cos(m.theta);
+      const by = pivotY - rampLength * t * Math.sin(m.theta);
+
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate(-m.theta);
+
+      ctx.fillStyle = "#f59e0b";
+      ctx.fillRect(-28, -24, 56, 48);
+      ctx.strokeStyle = "#92400e";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-28, -24, 56, 48);
+
+      ctx.restore();
+
+      // angle arc
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pivotX, pivotY, 55, -m.theta, 0);
+      ctx.stroke();
+      ctx.fillStyle = "#2563eb";
+      ctx.font = "16px Arial";
+      ctx.fillText(`${m.thetaDeg}°`, pivotX + 58, pivotY - 12);
+
+      // force arrows on block
+      const arrowScale = 2.5;
+
+      // weight
+      drawArrow(ctx, bx, by, bx, by + 60, "#dc2626", "mg");
+
+      // normal
+      const nx2 = bx - 45 * Math.sin(m.theta);
+      const ny2 = by - 45 * Math.cos(m.theta);
+      drawArrow(ctx, bx, by, nx2, ny2, "#059669", "N");
+
+      // friction / motion direction
+      const fx2 = bx - 55 * Math.cos(m.theta);
+      const fy2 = by - 55 * Math.sin(m.theta);
+      drawArrow(ctx, bx, by, fx2, fy2, "#2563eb", "friction");
+
+      // downslope component
+      const gx2 = bx + 58 * Math.cos(m.theta);
+      const gy2 = by + 58 * Math.sin(m.theta);
+      drawArrow(ctx, bx, by, gx2, gy2, "#7c3aed", "mg sinθ");
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "18px Arial";
+      ctx.fillText(`State: ${m.state}`, 26, 34);
+      ctx.fillText(`Acceleration: ${fmt(m.acceleration)} m/s²`, 26, 62);
+      ctx.fillText(`μ = ${m.mu.toFixed(2)}`, 26, 90);
+
+      // warning if reached bottom
+      if (blockPos >= 1 && m.state === "Sliding") {
+        ctx.fillStyle = "#b91c1c";
+        ctx.font = "18px Arial";
+        ctx.fillText("Block reached the bottom of the ramp", 26, 118);
+      }
+    }
+
+    function drawGraph() {
+      const m = getModel();
+      const ctx = graphCtx;
+      const w = graphCanvas.width;
+      const h = graphCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const barMax = Math.max(m.parallel, m.maxFriction, 1);
+      const scale = 260 / barMax;
+
+      const leftX = 180;
+      const rightX = 520;
+      const baseY = 190;
+      const barWidth = 120;
+
+      // axes
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(80, 30);
+      ctx.lineTo(80, 210);
+      ctx.lineTo(840, 210);
+      ctx.stroke();
+
+      // grid
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const y = 210 - i * 30;
+        ctx.beginPath();
+        ctx.moveTo(80, y);
+        ctx.lineTo(840, y);
+        ctx.stroke();
+      }
+
+      const h1 = m.parallel * scale;
+      const h2 = m.maxFriction * scale;
+
+      ctx.fillStyle = "#dc2626";
+      ctx.fillRect(leftX, baseY - h1, barWidth, h1);
+
+      ctx.fillStyle = "#2563eb";
+      ctx.fillRect(rightX, baseY - h2, barWidth, h2);
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText("Downslope gravity", leftX - 4, 230);
+      ctx.fillText("Maximum friction", rightX - 2, 230);
+
+      ctx.fillStyle = "#374151";
+      ctx.fillText(`${fmt(m.parallel)} N`, leftX + 18, baseY - h1 - 10);
+      ctx.fillText(`${fmt(m.maxFriction)} N`, rightX + 18, baseY - h2 - 10);
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "14px Arial";
+      for (let i = 0; i <= 5; i++) {
+        const val = (barMax / 5) * i;
+        const y = 210 - i * 30;
+        ctx.fillText(val.toFixed(1), 28, y + 4);
+      }
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "15px Arial";
+      ctx.fillText("Force (N)", 18, 22);
+    }
+
+    function updateAll() {
+      const m = getModel();
+      updateText(m);
+      drawGraph();
+    }
+
+    function animate(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.03);
+      lastTime = now;
+
+      updatePhysics(dt);
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    surfaceSelect.addEventListener("change", () => {
+      if (surfaceSelect.value !== "custom") {
+        muSlider.value = surfaceSelect.value;
+      }
+      updateAll();
+    });
+
+    muSlider.addEventListener("input", () => {
+      surfaceSelect.value = "custom";
+      updateAll();
+    });
+
+    [angleSlider, massSlider, gravitySlider].forEach(el => {
+      el.addEventListener("input", updateAll);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetBlock();
+      updateAll();
+    });
+
+    gentleBtn.addEventListener("click", () => {
+      angleSlider.value = 15;
+      muSlider.value = 0.45;
+      surfaceSelect.value = "custom";
+      resetBlock();
+      updateAll();
+    });
+
+    steepBtn.addEventListener("click", () => {
+      angleSlider.value = 40;
+      muSlider.value = 0.20;
+      surfaceSelect.value = "custom";
+      resetBlock();
+      updateAll();
+    });
+
+    updateAll();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

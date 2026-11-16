@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphing Linear and Nonlinear Functions</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --warn: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      font-size: 15px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .slider-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .formula-box, .status-box, .table-wrap, .graph-wrap, .notes {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 440px;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      cursor: crosshair;
+    }
+
+    .readout {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .notes p, .notes li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Graphing Linear and Nonlinear Functions</h1>
+      <p>
+        Explore how changing coefficients affects the shape of linear and nonlinear graphs.
+        Compare straight-line behavior with curved graphs and observe how parameters control slope, stretching, shifting, and turning.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="functionType">Function type</label>
+          <select id="functionType">
+            <option value="linear">Linear</option>
+            <option value="quadratic">Quadratic</option>
+            <option value="cubic">Cubic</option>
+            <option value="absolute">Absolute Value</option>
+            <option value="exponential">Exponential</option>
+          </select>
+        </div>
+
+        <div class="slider-box" id="boxA">
+          <label for="sliderA">
+            <span id="labelA">a</span>
+            <span class="value" id="valueA">1</span>
+          </label>
+          <input type="range" id="sliderA" min="-5" max="5" step="0.1" value="1" />
+        </div>
+
+        <div class="slider-box" id="boxB">
+          <label for="sliderB">
+            <span id="labelB">b</span>
+            <span class="value" id="valueB">0</span>
+          </label>
+          <input type="range" id="sliderB" min="-5" max="5" step="0.1" value="0" />
+        </div>
+
+        <div class="slider-box" id="boxC">
+          <label for="sliderC">
+            <span id="labelC">c</span>
+            <span class="value" id="valueC">0</span>
+          </label>
+          <input type="range" id="sliderC" min="-5" max="5" step="0.1" value="0" />
+        </div>
+
+        <div class="slider-box" id="boxD">
+          <label for="sliderD">
+            <span id="labelD">d</span>
+            <span class="value" id="valueD">0</span>
+          </label>
+          <input type="range" id="sliderD" min="-5" max="5" step="0.1" value="0" />
+        </div>
+
+        <div class="formula-box">
+          <h3>Current equation</h3>
+          <div class="formula" id="equationText">y = ax + b</div><br>
+          <div class="formula" id="classificationText">Classification: Linear</div>
+          <div class="status" id="statusText">
+            Linear functions make straight lines and have a constant rate of change.
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Function family</small>
+            <strong id="familyOut">Linear</strong>
+          </div>
+          <div class="stat">
+            <small>Graph type</small>
+            <strong id="graphTypeOut">Straight line</strong>
+          </div>
+          <div class="stat">
+            <small>Main behavior</small>
+            <strong id="behaviorOut">Constant slope</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="graph-wrap">
+          <h2>Function Graph</h2>
+          <canvas id="graphCanvas" width="900" height="440"></canvas>
+          <div class="readout" id="mouseReadout">Move your mouse over the graph to inspect x and y values.</div>
+        </div>
+
+        <div class="table-wrap">
+          <h2>Sample Values</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>x</th>
+                <th>y</th>
+              </tr>
+            </thead>
+            <tbody id="valueTable"></tbody>
+          </table>
+        </div>
+
+        <div class="notes">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>Linear functions form straight lines and have the same rate of change everywhere.</li>
+            <li>Nonlinear functions curve, bend, turn, or grow at changing rates.</li>
+            <li>Changing coefficients can stretch, shift, reflect, or reshape the graph.</li>
+          </ul>
+          <p>
+            A good teaching activity is to ask students to predict the graph shape first, then move the sliders to test their prediction.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for exploring linear and nonlinear functions.
+    </div>
+  </div>
+
+  <script>
+    const functionType = document.getElementById("functionType");
+
+    const sliderA = document.getElementById("sliderA");
+    const sliderB = document.getElementById("sliderB");
+    const sliderC = document.getElementById("sliderC");
+    const sliderD = document.getElementById("sliderD");
+
+    const labelA = document.getElementById("labelA");
+    const labelB = document.getElementById("labelB");
+    const labelC = document.getElementById("labelC");
+    const labelD = document.getElementById("labelD");
+
+    const valueA = document.getElementById("valueA");
+    const valueB = document.getElementById("valueB");
+    const valueC = document.getElementById("valueC");
+    const valueD = document.getElementById("valueD");
+
+    const boxA = document.getElementById("boxA");
+    const boxB = document.getElementById("boxB");
+    const boxC = document.getElementById("boxC");
+    const boxD = document.getElementById("boxD");
+
+    const equationText = document.getElementById("equationText");
+    const classificationText = document.getElementById("classificationText");
+    const statusText = document.getElementById("statusText");
+
+    const familyOut = document.getElementById("familyOut");
+    const graphTypeOut = document.getElementById("graphTypeOut");
+    const behaviorOut = document.getElementById("behaviorOut");
+
+    const valueTable = document.getElementById("valueTable");
+    const canvas = document.getElementById("graphCanvas");
+    const ctx = canvas.getContext("2d");
+    const mouseReadout = document.getElementById("mouseReadout");
+
+    const world = {
+      xMin: -10,
+      xMax: 10,
+      yMin: -10,
+      yMax: 10
+    };
+
+    function fmt(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function updateSliderDisplay() {
+      valueA.textContent = sliderA.value;
+      valueB.textContent = sliderB.value;
+      valueC.textContent = sliderC.value;
+      valueD.textContent = sliderD.value;
+    }
+
+    function configureControls() {
+      const type = functionType.value;
+
+      boxA.classList.remove("hidden");
+      boxB.classList.remove("hidden");
+      boxC.classList.remove("hidden");
+      boxD.classList.remove("hidden");
+
+      if (type === "linear") {
+        labelA.textContent = "a (slope)";
+        labelB.textContent = "b (intercept)";
+        boxC.classList.add("hidden");
+        boxD.classList.add("hidden");
+
+        sliderA.min = -5; sliderA.max = 5; sliderA.step = 0.1;
+        sliderB.min = -10; sliderB.max = 10; sliderB.step = 0.1;
+
+        if (sliderA.value === "") sliderA.value = 1;
+        if (sliderB.value === "") sliderB.value = 0;
+      }
+
+      if (type === "quadratic") {
+        labelA.textContent = "a";
+        labelB.textContent = "b";
+        labelC.textContent = "c";
+        boxD.classList.add("hidden");
+
+        sliderA.min = -3; sliderA.max = 3; sliderA.step = 0.1;
+        sliderB.min = -6; sliderB.max = 6; sliderB.step = 0.1;
+        sliderC.min = -10; sliderC.max = 10; sliderC.step = 0.1;
+      }
+
+      if (type === "cubic") {
+        labelA.textContent = "a";
+        labelB.textContent = "b";
+        labelC.textContent = "c";
+        labelD.textContent = "d";
+
+        sliderA.min = -1.5; sliderA.max = 1.5; sliderA.step = 0.1;
+        sliderB.min = -4; sliderB.max = 4; sliderB.step = 0.1;
+        sliderC.min = -6; sliderC.max = 6; sliderC.step = 0.1;
+        sliderD.min = -10; sliderD.max = 10; sliderD.step = 0.1;
+      }
+
+      if (type === "absolute") {
+        labelA.textContent = "a";
+        labelB.textContent = "h";
+        labelC.textContent = "k";
+        boxD.classList.add("hidden");
+
+        sliderA.min = -5; sliderA.max = 5; sliderA.step = 0.1;
+        sliderB.min = -8; sliderB.max = 8; sliderB.step = 0.1;
+        sliderC.min = -8; sliderC.max = 8; sliderC.step = 0.1;
+      }
+
+      if (type === "exponential") {
+        labelA.textContent = "a";
+        labelB.textContent = "base";
+        labelC.textContent = "h";
+        labelD.textContent = "k";
+
+        sliderA.min = -5; sliderA.max = 5; sliderA.step = 0.1;
+        sliderB.min = 0.2; sliderB.max = 3; sliderB.step = 0.1;
+        sliderC.min = -6; sliderC.max = 6; sliderC.step = 0.1;
+        sliderD.min = -8; sliderD.max = 8; sliderD.step = 0.1;
+
+        if (parseFloat(sliderB.value) <= 0) sliderB.value = 2;
+      }
+
+      updateSliderDisplay();
+    }
+
+    function getParams() {
+      return {
+        a: parseFloat(sliderA.value),
+        b: parseFloat(sliderB.value),
+        c: parseFloat(sliderC.value),
+        d: parseFloat(sliderD.value)
+      };
+    }
+
+    function evaluate(x) {
+      const type = functionType.value;
+      const { a, b, c, d } = getParams();
+
+      if (type === "linear") return a * x + b;
+      if (type === "quadratic") return a * x * x + b * x + c;
+      if (type === "cubic") return a * x * x * x + b * x * x + c * x + d;
+      if (type === "absolute") return a * Math.abs(x - b) + c;
+      if (type === "exponential") return a * Math.pow(b, x - c) + d;
+
+      return 0;
+    }
+
+    function getEquationAndDescription() {
+      const type = functionType.value;
+      const { a, b, c, d } = getParams();
+
+      if (type === "linear") {
+        return {
+          eq: `y = ${fmt(a)}x + ${fmt(b)}`,
+          cls: "Classification: Linear",
+          family: "Linear",
+          graphType: "Straight line",
+          behavior: "Constant slope",
+          note: "Linear functions make straight lines and have a constant rate of change."
+        };
+      }
+
+      if (type === "quadratic") {
+        return {
+          eq: `y = ${fmt(a)}x² + ${fmt(b)}x + ${fmt(c)}`,
+          cls: "Classification: Nonlinear",
+          family: "Quadratic",
+          graphType: "Parabola",
+          behavior: "Changes direction once",
+          note: "Quadratic functions form parabolas. They curve upward or downward and do not have a constant slope."
+        };
+      }
+
+      if (type === "cubic") {
+        return {
+          eq: `y = ${fmt(a)}x³ + ${fmt(b)}x² + ${fmt(c)}x + ${fmt(d)}`,
+          cls: "Classification: Nonlinear",
+          family: "Cubic",
+          graphType: "S-shaped curve",
+          behavior: "Changing slope",
+          note: "Cubic functions can bend in different ways and often show an S-shaped graph."
+        };
+      }
+
+      if (type === "absolute") {
+        return {
+          eq: `y = ${fmt(a)}|x - ${fmt(b)}| + ${fmt(c)}`,
+          cls: "Classification: Nonlinear",
+          family: "Absolute Value",
+          graphType: "V-shape",
+          behavior: "Sharp turning point",
+          note: "Absolute value functions make V-shaped graphs with a vertex where the direction changes suddenly."
+        };
+      }
+
+      if (type === "exponential") {
+        return {
+          eq: `y = ${fmt(a)} · ${fmt(b)}^(x - ${fmt(c)}) + ${fmt(d)}`,
+          cls: "Classification: Nonlinear",
+          family: "Exponential",
+          graphType: "Rapid growth or decay",
+          behavior: "Rate changes continuously",
+          note: "Exponential functions grow or decay rapidly and their rate of change is not constant."
+        };
+      }
+
+      return {};
+    }
+
+    function worldToCanvas(x, y) {
+      const px = ((x - world.xMin) / (world.xMax - world.xMin)) * canvas.width;
+      const py = canvas.height - ((y - world.yMin) / (world.yMax - world.yMin)) * canvas.height;
+      return { px, py };
+    }
+
+    function canvasToWorld(px, py) {
+      const x = world.xMin + (px / canvas.width) * (world.xMax - world.xMin);
+      const y = world.yMin + ((canvas.height - py) / canvas.height) * (world.yMax - world.yMin);
+      return { x, y };
+    }
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+
+      for (let x = Math.ceil(world.xMin); x <= world.xMax; x++) {
+        const { px } = worldToCanvas(x, 0);
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = Math.ceil(world.yMin); y <= world.yMax; y++) {
+        const { py } = worldToCanvas(0, y);
+        ctx.beginPath();
+        ctx.moveTo(0, py);
+        ctx.lineTo(canvas.width, py);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+
+      const yAxis = worldToCanvas(0, 0).px;
+      const xAxis = worldToCanvas(0, 0).py;
+
+      ctx.beginPath();
+      ctx.moveTo(yAxis, 0);
+      ctx.lineTo(yAxis, canvas.height);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, xAxis);
+      ctx.lineTo(canvas.width, xAxis);
+      ctx.stroke();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "12px Arial";
+
+      for (let x = Math.ceil(world.xMin); x <= world.xMax; x++) {
+        if (x === 0) continue;
+        const p = worldToCanvas(x, 0);
+        ctx.fillText(x, p.px - 4, xAxis + 14);
+      }
+
+      for (let y = Math.ceil(world.yMin); y <= world.yMax; y++) {
+        if (y === 0) continue;
+        const p = worldToCanvas(0, y);
+        ctx.fillText(y, yAxis + 6, p.py + 4);
+      }
+    }
+
+    function drawFunction() {
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      let started = false;
+
+      for (let px = 0; px <= canvas.width; px++) {
+        const { x } = canvasToWorld(px, 0);
+        const y = evaluate(x);
+
+        if (!isFinite(y)) {
+          started = false;
+          continue;
+        }
+
+        const p = worldToCanvas(x, y);
+
+        if (p.py < -1000 || p.py > canvas.height + 1000) {
+          started = false;
+          continue;
+        }
+
+        if (!started) {
+          ctx.moveTo(p.px, p.py);
+          started = true;
+        } else {
+          ctx.lineTo(p.px, p.py);
+        }
+      }
+
+      ctx.stroke();
+    }
+
+    function draw() {
+      drawGrid();
+      drawFunction();
+    }
+
+    function updateTable() {
+      const sampleX = [-4, -2, 0, 2, 4];
+      valueTable.innerHTML = "";
+
+      sampleX.forEach(x => {
+        const y = evaluate(x);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${x}</td>
+          <td>${isFinite(y) ? fmt(y) : "undefined"}</td>
+        `;
+        valueTable.appendChild(row);
+      });
+    }
+
+    function updateText() {
+      const info = getEquationAndDescription();
+      equationText.textContent = info.eq;
+      classificationText.textContent = info.cls;
+      statusText.textContent = info.note;
+      familyOut.textContent = info.family;
+      graphTypeOut.textContent = info.graphType;
+      behaviorOut.textContent = info.behavior;
+    }
+
+    function updateAll() {
+      configureControls();
+      updateSliderDisplay();
+      updateText();
+      updateTable();
+      draw();
+    }
+
+    [functionType, sliderA, sliderB, sliderC, sliderD].forEach(el => {
+      el.addEventListener("input", updateAll);
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const py = (e.clientY - rect.top) * (canvas.height / rect.height);
+      const point = canvasToWorld(px, py);
+      const yFunc = evaluate(point.x);
+
+      mouseReadout.textContent =
+        `x = ${fmt(point.x)}, graph y = ${isFinite(yFunc) ? fmt(yFunc) : "undefined"}`;
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+      mouseReadout.textContent = "Move your mouse over the graph to inspect x and y values.";
+    });
+
+    sliderA.value = 1;
+    sliderB.value = 0;
+    sliderC.value = 0;
+    sliderD.value = 0;
+
+    updateAll();
+  </script>
+</body>
+</html>
