@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solar Panel Tilt and Output</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --sun: #f59e0b;
+      --good: #059669;
+      --bad: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .formula-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      color: #0f172a;
+      line-height: 1.5;
+    }
+
+    .scene-wrap, .graph-wrap {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    svg, canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    svg {
+      height: auto;
+    }
+
+    canvas {
+      height: 280px;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .note-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .note-box p, .note-box li {
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .notes {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Solar Panel Tilt and Output</h1>
+      <p>
+        Explore how changing the tilt of a solar panel affects the electrical output.
+        Move the panel tilt and sun elevation to see how alignment changes power generation.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="sunSlider">
+            Sun elevation
+            <span class="value" id="sunValue">50°</span>
+          </label>
+          <input type="range" id="sunSlider" min="0" max="90" step="1" value="50" />
+        </div>
+
+        <div class="group">
+          <label for="tiltSlider">
+            Panel tilt
+            <span class="value" id="tiltValue">40°</span>
+          </label>
+          <input type="range" id="tiltSlider" min="0" max="90" step="1" value="40" />
+        </div>
+
+        <div class="group">
+          <label for="irradianceSlider">
+            Solar irradiance
+            <span class="value" id="irradianceValue">900 W/m²</span>
+          </label>
+          <input type="range" id="irradianceSlider" min="200" max="1200" step="10" value="900" />
+        </div>
+
+        <div class="group">
+          <label for="areaSlider">
+            Panel area
+            <span class="value" id="areaValue">2.0 m²</span>
+          </label>
+          <input type="range" id="areaSlider" min="0.5" max="5.0" step="0.1" value="2.0" />
+        </div>
+
+        <div class="group">
+          <label for="effSlider">
+            Panel efficiency
+            <span class="value" id="effValue">20%</span>
+          </label>
+          <input type="range" id="effSlider" min="5" max="30" step="1" value="20" />
+        </div>
+
+        <div class="formula-box">
+          <h3>Key relation</h3>
+          <div class="formula">Output = G × A × η × cos(θ)</div><br>
+          <div class="formula">θ = angle between sunlight and panel normal</div><br>
+          <div class="formula">Best output occurs when θ = 0°</div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Incident angle</small>
+            <strong id="thetaOut">0.00°</strong>
+          </div>
+          <div class="stat">
+            <small>Alignment factor</small>
+            <strong id="alignOut">1.00</strong>
+          </div>
+          <div class="stat">
+            <small>Panel output</small>
+            <strong id="powerOut">360.00 W</strong>
+          </div>
+          <div class="stat">
+            <small>Maximum output</small>
+            <strong id="maxOut">360.00 W</strong>
+          </div>
+          <div class="stat">
+            <small>Best tilt</small>
+            <strong id="bestTiltOut">40.00°</strong>
+          </div>
+          <div class="stat">
+            <small>Output ratio</small>
+            <strong id="ratioOut">100%</strong>
+          </div>
+        </div>
+
+        <div class="status" id="statusText">
+          The closer the panel faces the sun directly, the higher the output.
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="scene-wrap">
+          <h2>Live Solar View</h2>
+          <svg id="scene" viewBox="0 0 900 420">
+            <rect x="0" y="0" width="900" height="420" fill="#f8fbff"></rect>
+            <line x1="0" y1="280" x2="900" y2="280" stroke="#94a3b8" stroke-width="3"></line>
+
+            <g id="rayGroup"></g>
+
+            <circle id="sun" cx="160" cy="100" r="34" fill="#fbbf24" stroke="#f59e0b" stroke-width="6"></circle>
+
+            <line x1="600" y1="280" x2="600" y2="225" stroke="#475569" stroke-width="8"></line>
+            <line x1="560" y1="280" x2="640" y2="280" stroke="#475569" stroke-width="8"></line>
+
+            <g id="panelGroup">
+              <rect x="530" y="190" width="140" height="70" rx="8" fill="#1d4ed8" stroke="#0f172a" stroke-width="4"></rect>
+              <line x1="565" y1="190" x2="565" y2="260" stroke="#93c5fd" stroke-width="2"></line>
+              <line x1="600" y1="190" x2="600" y2="260" stroke="#93c5fd" stroke-width="2"></line>
+              <line x1="635" y1="190" x2="635" y2="260" stroke="#93c5fd" stroke-width="2"></line>
+              <line x1="530" y1="213" x2="670" y2="213" stroke="#93c5fd" stroke-width="2"></line>
+              <line x1="530" y1="236" x2="670" y2="236" stroke="#93c5fd" stroke-width="2"></line>
+            </g>
+
+            <line id="normalLine" x1="600" y1="225" x2="600" y2="120" stroke="#059669" stroke-width="4" stroke-dasharray="8 6"></line>
+            <line id="sunLine" x1="600" y1="225" x2="470" y2="110" stroke="#f59e0b" stroke-width="4" stroke-dasharray="8 6"></line>
+
+            <text id="txtSun" x="40" y="40" font-size="24" font-weight="bold" fill="#111827">Sun elevation: 50°</text>
+            <text id="txtTilt" x="40" y="75" font-size="24" font-weight="bold" fill="#111827">Panel tilt: 40°</text>
+            <text id="txtTheta" x="40" y="110" font-size="24" font-weight="bold" fill="#111827">Incident angle: 0°</text>
+          </svg>
+        </div>
+
+        <div class="graph-wrap">
+          <h2>Output vs Tilt</h2>
+          <canvas id="graphCanvas" width="820" height="280"></canvas>
+        </div>
+
+        <div class="notes">
+          <div class="note-box">
+            <h3>What students should notice</h3>
+            <ul>
+              <li>The same panel can produce different power depending on tilt alignment.</li>
+              <li>The best tilt changes when the sun elevation changes.</li>
+              <li>Poor alignment lowers output even if irradiance is strong.</li>
+            </ul>
+          </div>
+
+          <div class="note-box">
+            <h3>Teaching idea</h3>
+            <p>
+              Ask students to set a low morning sun angle and then a high noon sun angle.
+              Let them compare how the best panel tilt changes in each case.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding solar panel tilt and electrical output.
+    </div>
+  </div>
+
+  <script>
+    const sunSlider = document.getElementById("sunSlider");
+    const tiltSlider = document.getElementById("tiltSlider");
+    const irradianceSlider = document.getElementById("irradianceSlider");
+    const areaSlider = document.getElementById("areaSlider");
+    const effSlider = document.getElementById("effSlider");
+
+    const sunValue = document.getElementById("sunValue");
+    const tiltValue = document.getElementById("tiltValue");
+    const irradianceValue = document.getElementById("irradianceValue");
+    const areaValue = document.getElementById("areaValue");
+    const effValue = document.getElementById("effValue");
+
+    const thetaOut = document.getElementById("thetaOut");
+    const alignOut = document.getElementById("alignOut");
+    const powerOut = document.getElementById("powerOut");
+    const maxOut = document.getElementById("maxOut");
+    const bestTiltOut = document.getElementById("bestTiltOut");
+    const ratioOut = document.getElementById("ratioOut");
+    const statusText = document.getElementById("statusText");
+
+    const panelGroup = document.getElementById("panelGroup");
+    const normalLine = document.getElementById("normalLine");
+    const sunLine = document.getElementById("sunLine");
+    const sun = document.getElementById("sun");
+    const rayGroup = document.getElementById("rayGroup");
+
+    const txtSun = document.getElementById("txtSun");
+    const txtTilt = document.getElementById("txtTilt");
+    const txtTheta = document.getElementById("txtTheta");
+
+    const canvas = document.getElementById("graphCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function degToRad(d) {
+      return d * Math.PI / 180;
+    }
+
+    function fmt(x) {
+      return Number(x).toFixed(2);
+    }
+
+    function model() {
+      const sunElevation = parseFloat(sunSlider.value);
+      const tilt = parseFloat(tiltSlider.value);
+      const G = parseFloat(irradianceSlider.value);
+      const A = parseFloat(areaSlider.value);
+      const eta = parseFloat(effSlider.value) / 100;
+
+      const normalElevation = 90 - tilt;
+      const theta = Math.abs(sunElevation - normalElevation);
+      const align = Math.max(0, Math.cos(degToRad(theta)));
+
+      const power = G * A * eta * align;
+      const maxPower = G * A * eta;
+      const bestTilt = 90 - sunElevation;
+      const ratio = maxPower > 0 ? (power / maxPower) * 100 : 0;
+
+      return { sunElevation, tilt, G, A, eta, normalElevation, theta, align, power, maxPower, bestTilt, ratio };
+    }
+
+    function updateText(m) {
+      sunValue.textContent = `${m.sunElevation}°`;
+      tiltValue.textContent = `${m.tilt}°`;
+      irradianceValue.textContent = `${m.G} W/m²`;
+      areaValue.textContent = `${m.A.toFixed(1)} m²`;
+      effValue.textContent = `${(m.eta * 100).toFixed(0)}%`;
+
+      thetaOut.textContent = `${fmt(m.theta)}°`;
+      alignOut.textContent = fmt(m.align);
+      powerOut.textContent = `${fmt(m.power)} W`;
+      maxOut.textContent = `${fmt(m.maxPower)} W`;
+      bestTiltOut.textContent = `${fmt(m.bestTilt)}°`;
+      ratioOut.textContent = `${fmt(m.ratio)}%`;
+
+      txtSun.textContent = `Sun elevation: ${m.sunElevation}°`;
+      txtTilt.textContent = `Panel tilt: ${m.tilt}°`;
+      txtTheta.textContent = `Incident angle: ${fmt(m.theta)}°`;
+
+      if (m.theta < 8) {
+        statusText.textContent = "Excellent alignment. The panel is nearly facing the sun directly, so output is close to maximum.";
+      } else if (m.theta < 25) {
+        statusText.textContent = "Good alignment. The panel receives strong sunlight, but small tilt adjustments could improve output.";
+      } else {
+        statusText.textContent = "Weak alignment. The panel tilt does not match the sun well, so the output is reduced.";
+      }
+    }
+
+    function updateScene(m) {
+      const pivotX = 600;
+      const pivotY = 225;
+
+      panelGroup.setAttribute("transform", `rotate(${-m.tilt} ${pivotX} ${pivotY})`);
+
+      const sunX = 170 + 170 * Math.cos(degToRad(m.sunElevation));
+      const sunY = 280 - 170 * Math.sin(degToRad(m.sunElevation));
+      sun.setAttribute("cx", sunX);
+      sun.setAttribute("cy", sunY);
+
+      const normalLen = 110;
+      const nx = pivotX + normalLen * Math.cos(degToRad(m.normalElevation));
+      const ny = pivotY - normalLen * Math.sin(degToRad(m.normalElevation));
+      normalLine.setAttribute("x1", pivotX);
+      normalLine.setAttribute("y1", pivotY);
+      normalLine.setAttribute("x2", nx);
+      normalLine.setAttribute("y2", ny);
+
+      const sunLen = 170;
+      const sx = pivotX - sunLen * Math.cos(degToRad(m.sunElevation));
+      const sy = pivotY - sunLen * Math.sin(degToRad(m.sunElevation));
+      sunLine.setAttribute("x1", pivotX);
+      sunLine.setAttribute("y1", pivotY);
+      sunLine.setAttribute("x2", sx);
+      sunLine.setAttribute("y2", sy);
+
+      drawRays(sunX, sunY, m.align);
+    }
+
+    function drawRays(sunX, sunY, align) {
+      rayGroup.innerHTML = "";
+      const endX = 520;
+      const endY = 210;
+
+      for (let i = 0; i < 6; i++) {
+        const offset = (i - 2.5) * 18;
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", sunX + offset * 0.2);
+        line.setAttribute("y1", sunY + offset * 0.1);
+        line.setAttribute("x2", endX + offset);
+        line.setAttribute("y2", endY + offset * 0.15);
+        line.setAttribute("stroke", "#f59e0b");
+        line.setAttribute("stroke-width", 3 + align * 3);
+        line.setAttribute("opacity", 0.35 + align * 0.45);
+        rayGroup.appendChild(line);
+      }
+    }
+
+    function drawGraph(m) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 55;
+      const plotW = w - 2 * pad;
+      const plotH = h - 2 * pad;
+      const yMax = Math.max(m.maxPower * 1.1, 1);
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= 6; i++) {
+        const x = pad + (plotW / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, pad);
+        ctx.lineTo(x, h - pad);
+        ctx.stroke();
+      }
+
+      for (let i = 0; i <= 5; i++) {
+        const y = pad + (plotH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(w - pad, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(pad, pad);
+      ctx.lineTo(pad, h - pad);
+      ctx.lineTo(w - pad, h - pad);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      for (let tilt = 0; tilt <= 90; tilt++) {
+        const normalElevation = 90 - tilt;
+        const theta = Math.abs(m.sunElevation - normalElevation);
+        const align = Math.max(0, Math.cos(degToRad(theta)));
+        const power = m.G * m.A * m.eta * align;
+
+        const px = pad + (tilt / 90) * plotW;
+        const py = h - pad - (power / yMax) * plotH;
+
+        if (tilt === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      const currentX = pad + (m.tilt / 90) * plotW;
+      const currentY = h - pad - (m.power / yMax) * plotH;
+      ctx.fillStyle = "#dc2626";
+      ctx.beginPath();
+      ctx.arc(currentX, currentY, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      const bestX = pad + (m.bestTilt / 90) * plotW;
+      const bestY = h - pad - (m.maxPower / yMax) * plotH;
+      ctx.fillStyle = "#059669";
+      ctx.beginPath();
+      ctx.arc(bestX, bestY, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText("Tilt angle (degrees)", w / 2 - 55, h - 12);
+
+      ctx.save();
+      ctx.translate(20, h / 2 + 20);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Output power (W)", 0, 0);
+      ctx.restore();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "14px Arial";
+
+      for (let i = 0; i <= 6; i++) {
+        const val = (90 / 6) * i;
+        const x = pad + (plotW / 6) * i;
+        ctx.fillText(val.toFixed(0), x - 8, h - pad + 22);
+      }
+
+      for (let i = 0; i <= 5; i++) {
+        const val = yMax - (yMax / 5) * i;
+        const y = pad + (plotH / 5) * i;
+        ctx.fillText(val.toFixed(0), 8, y + 4);
+      }
+    }
+
+    function update() {
+      const m = model();
+      updateText(m);
+      updateScene(m);
+      drawGraph(m);
+    }
+
+    sunSlider.addEventListener("input", update);
+    tiltSlider.addEventListener("input", update);
+    irradianceSlider.addEventListener("input", update);
+    areaSlider.addEventListener("input", update);
+    effSlider.addEventListener("input", update);
+
+    update();
+  </script>
+</body>
+</html>

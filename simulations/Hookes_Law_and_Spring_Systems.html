@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hooke’s Law and Spring Systems</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --warn: #d97706;
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      font-size: 15px;
+    }
+
+    .slider-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .formula-box, .scene-wrap, .graph-wrap, .notes-wrap {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    #springCanvas {
+      height: 420px;
+    }
+
+    #graphCanvas {
+      height: 280px;
+    }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      #springCanvas {
+        height: 340px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Hooke’s Law and Spring Systems</h1>
+      <p>
+        Explore how force, spring constant, mass, and spring arrangement affect extension and motion.
+        Compare single springs with series and parallel spring systems, and observe how the system stiffness changes.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="systemType">Spring system</label>
+          <select id="systemType">
+            <option value="single">Single spring</option>
+            <option value="series">Two springs in series</option>
+            <option value="parallel">Two springs in parallel</option>
+          </select>
+        </div>
+
+        <div class="slider-box">
+          <label for="k1Slider">
+            Spring constant k₁
+            <span class="value" id="k1Value">50 N/m</span>
+          </label>
+          <input type="range" id="k1Slider" min="10" max="200" step="1" value="50" />
+        </div>
+
+        <div class="slider-box">
+          <label for="k2Slider">
+            Spring constant k₂
+            <span class="value" id="k2Value">80 N/m</span>
+          </label>
+          <input type="range" id="k2Slider" min="10" max="200" step="1" value="80" />
+        </div>
+
+        <div class="slider-box">
+          <label for="massSlider">
+            Attached mass
+            <span class="value" id="massValue">2.0 kg</span>
+          </label>
+          <input type="range" id="massSlider" min="0.1" max="10" step="0.1" value="2.0" />
+        </div>
+
+        <div class="slider-box">
+          <label for="stretchSlider">
+            Extra pull from equilibrium
+            <span class="value" id="stretchValue">0.15 m</span>
+          </label>
+          <input type="range" id="stretchSlider" min="0" max="0.5" step="0.01" value="0.15" />
+        </div>
+
+        <div class="slider-box">
+          <label for="gravitySlider">
+            Gravity
+            <span class="value" id="gravityValue">9.81 m/s²</span>
+          </label>
+          <input type="range" id="gravitySlider" min="1" max="20" step="0.01" value="9.81" />
+        </div>
+
+        <div class="formula-box">
+          <h3>Key equations</h3>
+          <div class="formula">F = kx</div><br>
+          <div class="formula">E = ½kx²</div><br>
+          <div class="formula">k(series) = 1 / (1/k₁ + 1/k₂)</div><br>
+          <div class="formula">k(parallel) = k₁ + k₂</div>
+
+          <div class="status" id="statusText">
+            A stiffer spring has a larger spring constant, so it stretches less under the same force.
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Equivalent spring constant</small>
+            <strong id="keqOut">50.00 N/m</strong>
+          </div>
+          <div class="stat">
+            <small>Weight force</small>
+            <strong id="forceOut">19.62 N</strong>
+          </div>
+          <div class="stat">
+            <small>Static extension</small>
+            <strong id="extensionOut">0.39 m</strong>
+          </div>
+          <div class="stat">
+            <small>Stored elastic energy</small>
+            <strong id="energyOut">3.85 J</strong>
+          </div>
+          <div class="stat">
+            <small>Oscillation period</small>
+            <strong id="periodOut">1.26 s</strong>
+          </div>
+          <div class="stat">
+            <small>Maximum displacement</small>
+            <strong id="ampOut">0.15 m</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="scene-wrap">
+          <h2>Spring Motion</h2>
+          <canvas id="springCanvas" width="920" height="420"></canvas>
+        </div>
+
+        <div class="graph-wrap">
+          <h2>Force vs Extension</h2>
+          <canvas id="graphCanvas" width="920" height="280"></canvas>
+        </div>
+
+        <div class="notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>A larger spring constant means a stiffer spring and less extension.</li>
+            <li>Series systems are softer than either individual spring.</li>
+            <li>Parallel systems are stiffer because the springs share the load together.</li>
+            <li>The force-extension graph is linear for an ideal Hooke’s law spring.</li>
+          </ul>
+          <p>
+            A good classroom activity is to keep the mass the same and switch between single, series, and parallel systems to compare the extension and oscillation period.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding Hooke’s law and spring systems.
+    </div>
+  </div>
+
+  <script>
+    const systemType = document.getElementById("systemType");
+    const k1Slider = document.getElementById("k1Slider");
+    const k2Slider = document.getElementById("k2Slider");
+    const massSlider = document.getElementById("massSlider");
+    const stretchSlider = document.getElementById("stretchSlider");
+    const gravitySlider = document.getElementById("gravitySlider");
+
+    const k1Value = document.getElementById("k1Value");
+    const k2Value = document.getElementById("k2Value");
+    const massValue = document.getElementById("massValue");
+    const stretchValue = document.getElementById("stretchValue");
+    const gravityValue = document.getElementById("gravityValue");
+
+    const keqOut = document.getElementById("keqOut");
+    const forceOut = document.getElementById("forceOut");
+    const extensionOut = document.getElementById("extensionOut");
+    const energyOut = document.getElementById("energyOut");
+    const periodOut = document.getElementById("periodOut");
+    const ampOut = document.getElementById("ampOut");
+    const statusText = document.getElementById("statusText");
+
+    const springCanvas = document.getElementById("springCanvas");
+    const springCtx = springCanvas.getContext("2d");
+
+    const graphCanvas = document.getElementById("graphCanvas");
+    const graphCtx = graphCanvas.getContext("2d");
+
+    let startTime = performance.now();
+
+    function fmt(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function getEquivalentK(type, k1, k2) {
+      if (type === "single") return k1;
+      if (type === "series") return 1 / (1 / k1 + 1 / k2);
+      if (type === "parallel") return k1 + k2;
+      return k1;
+    }
+
+    function getModel() {
+      const type = systemType.value;
+      const k1 = parseFloat(k1Slider.value);
+      const k2 = parseFloat(k2Slider.value);
+      const mass = parseFloat(massSlider.value);
+      const extraStretch = parseFloat(stretchSlider.value);
+      const g = parseFloat(gravitySlider.value);
+
+      const keq = getEquivalentK(type, k1, k2);
+      const weightForce = mass * g;
+      const staticExtension = weightForce / keq;
+      const energy = 0.5 * keq * staticExtension * staticExtension;
+      const period = 2 * Math.PI * Math.sqrt(mass / keq);
+
+      return {
+        type,
+        k1,
+        k2,
+        mass,
+        extraStretch,
+        g,
+        keq,
+        weightForce,
+        staticExtension,
+        energy,
+        period
+      };
+    }
+
+    function updateText(m) {
+      k1Value.textContent = `${m.k1.toFixed(0)} N/m`;
+      k2Value.textContent = `${m.k2.toFixed(0)} N/m`;
+      massValue.textContent = `${m.mass.toFixed(1)} kg`;
+      stretchValue.textContent = `${m.extraStretch.toFixed(2)} m`;
+      gravityValue.textContent = `${m.g.toFixed(2)} m/s²`;
+
+      keqOut.textContent = `${fmt(m.keq)} N/m`;
+      forceOut.textContent = `${fmt(m.weightForce)} N`;
+      extensionOut.textContent = `${fmt(m.staticExtension)} m`;
+      energyOut.textContent = `${fmt(m.energy)} J`;
+      periodOut.textContent = `${fmt(m.period)} s`;
+      ampOut.textContent = `${fmt(m.extraStretch)} m`;
+
+      if (m.type === "single") {
+        statusText.textContent = "A single spring stretches according to Hooke’s law: the extension is proportional to the applied force.";
+      } else if (m.type === "series") {
+        statusText.textContent = "Springs in series make the system softer, so the total extension becomes larger under the same load.";
+      } else {
+        statusText.textContent = "Springs in parallel make the system stiffer, so the total extension becomes smaller under the same load.";
+      }
+    }
+
+    function drawSpringSegment(ctx, x, yTop, length, width, turns, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x, yTop);
+
+      const step = length / (turns * 2);
+      let y = yTop;
+
+      for (let i = 0; i < turns * 2; i++) {
+        const dx = i % 2 === 0 ? -width : width;
+        y += step;
+        ctx.lineTo(x + dx, y);
+      }
+
+      ctx.lineTo(x, yTop + length);
+      ctx.stroke();
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const head = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - head * Math.cos(angle - Math.PI / 6), y2 - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - head * Math.cos(angle + Math.PI / 6), y2 - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawSpringScene(m, timeSeconds) {
+      const ctx = springCtx;
+      const w = springCanvas.width;
+      const h = springCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, "#eef6ff");
+      bg.addColorStop(1, "#ffffff");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = "#374151";
+      ctx.fillRect(160, 40, 600, 14);
+
+      const omega = Math.sqrt(m.keq / m.mass);
+      const yOsc = m.extraStretch * Math.cos(omega * timeSeconds);
+
+      const baseLengthPx = 120;
+      const scale = 230;
+      const staticPx = m.staticExtension * scale;
+      const extraPx = yOsc * scale;
+
+      const anchorX = w / 2;
+      const anchorY = 54;
+      const massW = 100;
+      const massH = 70;
+
+      if (m.type === "single") {
+        const springLength = baseLengthPx + staticPx + extraPx;
+        drawSpringSegment(ctx, anchorX, anchorY, springLength, 28, 11, "#2563eb");
+
+        const massY = anchorY + springLength;
+        ctx.fillStyle = "#9ca3af";
+        ctx.fillRect(anchorX - massW / 2, massY, massW, massH);
+
+        drawArrow(ctx, anchorX + 120, massY + 12, anchorX + 120, massY + 70, "#dc2626");
+        ctx.fillStyle = "#dc2626";
+        ctx.font = "16px Arial";
+        ctx.fillText("Weight", anchorX + 135, massY + 48);
+      }
+
+      if (m.type === "series") {
+        const totalSpring = baseLengthPx + staticPx + extraPx;
+        const part1 = totalSpring * (m.keq / m.k1);
+        const part2 = totalSpring * (m.keq / m.k2);
+
+        drawSpringSegment(ctx, anchorX, anchorY, part1, 28, 7, "#2563eb");
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(anchorX - 18, anchorY + part1, 36, 10);
+        drawSpringSegment(ctx, anchorX, anchorY + part1 + 10, part2, 28, 7, "#0ea5e9");
+
+        const massY = anchorY + part1 + 10 + part2;
+        ctx.fillStyle = "#9ca3af";
+        ctx.fillRect(anchorX - massW / 2, massY, massW, massH);
+
+        drawArrow(ctx, anchorX + 120, massY + 12, anchorX + 120, massY + 70, "#dc2626");
+        ctx.fillStyle = "#dc2626";
+        ctx.font = "16px Arial";
+        ctx.fillText("Weight", anchorX + 135, massY + 48);
+      }
+
+      if (m.type === "parallel") {
+        const springLength = baseLengthPx + staticPx + extraPx;
+        drawSpringSegment(ctx, anchorX - 60, anchorY, springLength, 18, 11, "#2563eb");
+        drawSpringSegment(ctx, anchorX + 60, anchorY, springLength, 18, 11, "#0ea5e9");
+
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(anchorX - 85, anchorY + springLength, 170, 10);
+
+        const massY = anchorY + springLength + 10;
+        ctx.fillStyle = "#9ca3af";
+        ctx.fillRect(anchorX - massW / 2, massY, massW, massH);
+
+        drawArrow(ctx, anchorX + 120, massY + 12, anchorX + 120, massY + 70, "#dc2626");
+        ctx.fillStyle = "#dc2626";
+        ctx.font = "16px Arial";
+        ctx.fillText("Weight", anchorX + 135, massY + 48);
+      }
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "18px Arial";
+      ctx.fillText(`System: ${m.type.charAt(0).toUpperCase() + m.type.slice(1)}`, 24, 34);
+      ctx.fillText(`Equivalent k = ${fmt(m.keq)} N/m`, 24, 62);
+      ctx.fillText(`Extension = ${fmt(m.staticExtension)} m`, 24, 90);
+    }
+
+    function drawGraph(m) {
+      const ctx = graphCtx;
+      const w = graphCanvas.width;
+      const h = graphCanvas.height;
+      const pad = 55;
+      const plotW = w - 2 * pad;
+      const plotH = h - 2 * pad;
+
+      const xMax = Math.max(0.6, m.staticExtension * 1.5, 0.4);
+      const yMax = m.keq * xMax * 1.15;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= 6; i++) {
+        const x = pad + (plotW / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, pad);
+        ctx.lineTo(x, h - pad);
+        ctx.stroke();
+      }
+
+      for (let i = 0; i <= 5; i++) {
+        const y = pad + (plotH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(w - pad, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(pad, pad);
+      ctx.lineTo(pad, h - pad);
+      ctx.lineTo(w - pad, h - pad);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      for (let i = 0; i <= 120; i++) {
+        const x = (xMax / 120) * i;
+        const force = m.keq * x;
+
+        const px = pad + (x / xMax) * plotW;
+        const py = h - pad - (force / yMax) * plotH;
+
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      const currentX = m.staticExtension;
+      const currentY = m.weightForce;
+      const px = pad + (currentX / xMax) * plotW;
+      const py = h - pad - (currentY / yMax) * plotH;
+
+      ctx.fillStyle = "#dc2626";
+      ctx.beginPath();
+      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText("Extension x (m)", w / 2 - 45, h - 12);
+
+      ctx.save();
+      ctx.translate(20, h / 2 + 20);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Force F (N)", 0, 0);
+      ctx.restore();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "14px Arial";
+
+      for (let i = 0; i <= 6; i++) {
+        const val = (xMax / 6) * i;
+        const x = pad + (plotW / 6) * i;
+        ctx.fillText(val.toFixed(2), x - 12, h - pad + 22);
+      }
+
+      for (let i = 0; i <= 5; i++) {
+        const val = yMax - (yMax / 5) * i;
+        const y = pad + (plotH / 5) * i;
+        ctx.fillText(val.toFixed(1), 8, y + 4);
+      }
+    }
+
+    function update() {
+      const m = getModel();
+      updateText(m);
+      drawGraph(m);
+    }
+
+    function animate(now) {
+      const t = (now - startTime) / 1000;
+      const m = getModel();
+      drawSpringScene(m, t);
+      requestAnimationFrame(animate);
+    }
+
+    [systemType, k1Slider, k2Slider, massSlider, stretchSlider, gravitySlider].forEach(el => {
+      el.addEventListener("input", update);
+    });
+
+    update();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

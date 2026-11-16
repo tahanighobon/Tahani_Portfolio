@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tahani A. Ghobon – Interactive 3D Learning Worlds</title>
+<meta name="description" content="Creative technologist, instructional designer and engineering educator building 3D digital twins, educational games, virtual labs and VR experiences.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="lock">
+<div class="boot" id="boot" aria-hidden="true"><div class="curtain t"></div><div class="curtain b"></div>
+  <div class="boot-in"><div class="pct" id="pct">0</div><div class="bar"><i id="bar"></i></div><p id="bootMsg">Initialising the digital twin</p></div></div>
+<div id="prog" aria-hidden="true"></div><div class="ring" id="ring" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="spot" id="spot" aria-hidden="true"></div>
+
+<header class="nav">
+  <a href="#top" class="logo">T. Ghobon</a>
+  <nav>
+    <a href="#cv">CV</a><a href="#experience">Experience</a><a href="#research">Research</a>
+    <a href="#games">Games &amp; VR</a><a href="#labs">Simulations</a><a href="#scenes">3D Scenes</a><a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero">
+  <canvas id="world" aria-hidden="true"></canvas><div class="flare" id="flare" aria-hidden="true"></div>
+  <div class="hero-copy">
+    <p class="kicker">Creative Technologist · Digital Twin and Virtual Lab Creator · 3D Educational Game Creator · Instructional Designer · Engineering Educator</p>
+    <h1>I engineer things<br>you can <span id="verb">touch</span>.</h1>
+    <p class="lede">Engineer who builds both sides of an interactive experience: the hardware that senses and moves, and the 3D world that shows it. Tahani A. Ghobon, Amman.</p>
+    <div class="cta">
+      <a class="btn" href="#cv">Read my CV</a>
+      <a class="btn ghost" href="#games">Jump to the work</a>
+    </div>
+  </div>
+  <div class="twin" id="twinBox"><canvas id="twin" role="img" aria-label="Interactive 3D wireframe that morphs when clicked"></canvas></div>
+</section>
+
+<section class="sec" id="cv">
+  <div class="wrap two">
+    <div>
+      <h2>Profile</h2>
+      <p>An educator, instructional designer and creative technologist with 8+ years of experience in education, training, research and instructional design.</p>
+      <p>I design and develop interactive 3D digital twins, educational games, virtual labs, and simulations from concept to completion, combining 3D artistry, engineering, technology, and creative storytelling.</p>
+      <p>My end-to-end creation process includes:</p>
+      <ul class="bul">
+        <li>3D Modeling</li><li>Texturing &amp; Materials</li><li>Lighting &amp; Rendering</li><li>Animation</li><li>Storytelling &amp; Concept Development</li><li>Scriptwriting &amp; Storyboarding</li><li>Interactivity &amp; User Experience</li><li>Game Logic &amp; Programming</li><li>Hardware Integration &amp; Physical Computing</li>
+      </ul>
+      <p>I also explore AI-powered creative tools and emerging technologies to transform ideas into engaging, interactive, and immersive digital experiences.</p>
+    </div>
+    <ul class="facts">
+      <li><b>8+</b> years in education, training, research and instructional design</li>
+      <li><b>MITx</b> MicroMasters in Statistics and Data Science, 2024</li>
+      <li><b>BSc</b> Electrical Engineering (Power), JUST, 2018</li>
+    </ul>
+  </div>
+  <div class="wrap">
+    <h3>Two sides of one engineer</h3>
+    <div class="split" id="split" aria-label="Drag to compare hardware and 3D"><canvas id="splitC"></canvas><div class="handle" id="handle"><span>‹ ›</span></div><b class="lab l">Hardware</b><b class="lab r">3D</b></div>
+    <div class="duo">
+      <div class="panel hw"><h4>Hardware</h4><p>From sensing and control to power and motion. Physical computing, hardware integration and digital twins that respond to real devices, built into working prototypes.</p></div>
+      <div class="panel td"><h4>3D</h4><p>From modeling, texturing and lighting to animation and game logic. Interactive 3D and 360 CGI environments, VR experiences and AI-generated 3D assets, delivered as films and playable games.</p></div>
+    </div>
+    <h3>Core skills</h3>
+    <div class="skillgrid" id="skills"></div>
+  </div>
+</section>
+
+<section class="sec dark" id="experience">
+  <div class="wrap">
+    <h2>Work experience</h2>
+    <div class="tl" id="jobs"></div>
+    <h3>Beyond the classroom</h3>
+    <div class="tl" id="nonTeach"></div>
+    <h3>Judging and academic support</h3>
+    <ul class="plain cols" id="judging"></ul>
+    <h3>Data science and engineering projects</h3>
+    <div class="two"><p id="projA"></p><p id="projB"></p></div>
+    <h3>Online and blended learning initiatives</h3>
+    <ul class="plain" id="online"></ul>
+  </div>
+</section>
+
+<section class="sec" id="research">
+  <div class="wrap two">
+    <div>
+      <h2>Research publications</h2>
+      <ul class="plain pubs" id="papers"></ul>
+      <p class="small"><a href="https://scholar.google.com/" rel="noopener" target="_blank">Google Scholar profile</a></p>
+    </div>
+    <div>
+      <h2>Education</h2>
+      <ul class="plain" id="edu"></ul>
+      <h3>Courses</h3>
+      <ul class="plain" id="courses"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec dark showcase" id="games">
+  <div class="wrap">
+    <p class="kicker">Selected work</p>
+    <h2>Games, virtual experiences and virtual reality</h2>
+    <p class="sub">Samples of educational games, card games and VR experiences I created.</p>
+    <div id="gameGroups"></div>
+  </div>
+</section>
+
+<section class="sec" id="labs">
+  <div class="wrap">
+    <h2>Simulation lab</h2>
+    <p class="sub">Samples of interactive simulations. Open one and change the variables.</p>
+    <div class="tools"><div class="filters" id="filters"></div><div class="find"><input id="q" type="search" placeholder="Search simulations" aria-label="Search simulations"><button class="mini" id="rand">Surprise me</button></div></div>
+    <div id="simGrid"></div>
+  </div>
+</section>
+
+<section class="sec dark" id="scenes">
+  <div class="wrap">
+    <h2>3D scenes</h2>
+    <p class="sub">Samples of 3D scenes. Modeled, textured, lit, animated and rendered by me.</p>
+    <div class="uni" id="reel"></div>
+  </div>
+</section>
+
+<section class="sec dark" id="contact">
+  <div class="wrap center">
+    <h2>Let's build something people can explore.</h2>
+    <div class="cta">
+      <a class="btn" href="https://jo.linkedin.com/in/tahani-ghobon" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn" href="https://www.youtube.com/@tahani_ghobon" target="_blank" rel="noopener">YouTube</a>
+      <a class="btn" href="https://www.instagram.com/tahani_ghobon/" target="_blank" rel="noopener">Instagram</a>
+    </div>
+    <p class="small">© <span id="yr"></span> Tahani A. Ghobon</p>
+  </div>
+</section>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-bar"><strong id="mTitle"></strong>
+    <span><a class="mini" id="mOpen" target="_blank" rel="noopener">New tab</a> <button class="mini" id="mClose">Close ✕</button></span></div>
+  <div class="modal-body" id="mBody"></div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
