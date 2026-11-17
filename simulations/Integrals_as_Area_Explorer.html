@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Integrals as Area Explorer</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --warn: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .canvas-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: white;
+      font-size: 15px;
+    }
+
+    input[type="range"] {
+      cursor: pointer;
+    }
+
+    .formula-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      color: #0f172a;
+      line-height: 1.5;
+    }
+
+    .graph-wrap {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 520px;
+      display: block;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .notes {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .note-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .note-box p, .note-box li {
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .notes {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Integrals as Area</h1>
+      <p>
+        Explore how a definite integral represents accumulated signed area under a curve.
+        Change the function, interval, method, and number of subintervals to see how the approximation improves.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="functionSelect">Function</label>
+          <select id="functionSelect">
+            <option value="x">f(x) = x</option>
+            <option value="x2" selected>f(x) = x²</option>
+            <option value="sin">f(x) = sin(x)</option>
+            <option value="cos">f(x) = cos(x)</option>
+            <option value="cubic">f(x) = x³ - 3x</option>
+            <option value="gauss">f(x) = e^(-x²/2)</option>
+          </select>
+        </div>
+
+        <div class="group">
+          <label for="aSlider">
+            Lower bound a
+            <span class="value" id="aValue">-2.0</span>
+          </label>
+          <input type="range" id="aSlider" min="-5" max="5" step="0.1" value="-2" />
+        </div>
+
+        <div class="group">
+          <label for="bSlider">
+            Upper bound b
+            <span class="value" id="bValue">2.0</span>
+          </label>
+          <input type="range" id="bSlider" min="-5" max="5" step="0.1" value="2" />
+        </div>
+
+        <div class="group">
+          <label for="nSlider">
+            Number of subintervals
+            <span class="value" id="nValue">8</span>
+          </label>
+          <input type="range" id="nSlider" min="1" max="60" step="1" value="8" />
+        </div>
+
+        <div class="group">
+          <label for="methodSelect">Approximation method</label>
+          <select id="methodSelect">
+            <option value="left">Left Riemann Sum</option>
+            <option value="right">Right Riemann Sum</option>
+            <option value="midpoint" selected>Midpoint Rule</option>
+            <option value="trapezoid">Trapezoidal Rule</option>
+          </select>
+        </div>
+
+        <div class="formula-box">
+          <h3>Key Idea</h3>
+          <div class="formula">∫[a,b] f(x) dx</div><br>
+          <div class="formula">Area above x-axis → positive</div><br>
+          <div class="formula">Area below x-axis → negative</div><br>
+          <div class="formula">Integral = signed accumulated area</div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Interval</small>
+            <strong id="intervalOut">[-2.00, 2.00]</strong>
+          </div>
+          <div class="stat">
+            <small>Δx</small>
+            <strong id="dxOut">0.50</strong>
+          </div>
+          <div class="stat">
+            <small>Approximate Integral</small>
+            <strong id="approxOut">2.50</strong>
+          </div>
+          <div class="stat">
+            <small>Reference Integral</small>
+            <strong id="exactOut">5.33</strong>
+          </div>
+          <div class="stat">
+            <small>Absolute Error</small>
+            <strong id="errorOut">2.83</strong>
+          </div>
+          <div class="stat">
+            <small>Method</small>
+            <strong id="methodOut">Midpoint</strong>
+          </div>
+        </div>
+
+        <div class="status" id="statusText">
+          The colored region shows signed area. Green contributes positively and red contributes negatively.
+        </div>
+      </div>
+
+      <div class="canvas-panel">
+        <h2>Graph and Area Visualization</h2>
+
+        <div class="graph-wrap">
+          <canvas id="graphCanvas" width="860" height="520"></canvas>
+        </div>
+
+        <div class="notes">
+          <div class="note-box">
+            <h3>What students should notice</h3>
+            <ul>
+              <li>As the number of subintervals increases, the approximation becomes more accurate.</li>
+              <li>Different numerical methods give different approximations for the same interval.</li>
+              <li>Area below the x-axis subtracts from the total integral.</li>
+            </ul>
+          </div>
+
+          <div class="note-box">
+            <h3>Teaching idea</h3>
+            <p>
+              Let students predict whether the integral is positive, negative, or near zero before checking the value.
+              Then change the function and interval to compare the visual area with the numerical answer.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based experiment for understanding definite integrals as area.
+    </div>
+  </div>
+
+  <script>
+    const functionSelect = document.getElementById("functionSelect");
+    const aSlider = document.getElementById("aSlider");
+    const bSlider = document.getElementById("bSlider");
+    const nSlider = document.getElementById("nSlider");
+    const methodSelect = document.getElementById("methodSelect");
+
+    const aValue = document.getElementById("aValue");
+    const bValue = document.getElementById("bValue");
+    const nValue = document.getElementById("nValue");
+
+    const intervalOut = document.getElementById("intervalOut");
+    const dxOut = document.getElementById("dxOut");
+    const approxOut = document.getElementById("approxOut");
+    const exactOut = document.getElementById("exactOut");
+    const errorOut = document.getElementById("errorOut");
+    const methodOut = document.getElementById("methodOut");
+    const statusText = document.getElementById("statusText");
+
+    const canvas = document.getElementById("graphCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function f(x) {
+      const type = functionSelect.value;
+      if (type === "x") return x;
+      if (type === "x2") return x * x;
+      if (type === "sin") return Math.sin(x);
+      if (type === "cos") return Math.cos(x);
+      if (type === "cubic") return x * x * x - 3 * x;
+      if (type === "gauss") return Math.exp(-(x * x) / 2);
+      return x * x;
+    }
+
+    function labelForFunction() {
+      const type = functionSelect.value;
+      if (type === "x") return "f(x) = x";
+      if (type === "x2") return "f(x) = x²";
+      if (type === "sin") return "f(x) = sin(x)";
+      if (type === "cos") return "f(x) = cos(x)";
+      if (type === "cubic") return "f(x) = x³ - 3x";
+      if (type === "gauss") return "f(x) = e^(-x²/2)";
+      return "f(x)";
+    }
+
+    function fmt(x) {
+      return Number(x).toFixed(2);
+    }
+
+    function integrateReference(a, b, steps = 4000) {
+      const dx = (b - a) / steps;
+      let sum = 0;
+      for (let i = 0; i < steps; i++) {
+        const x1 = a + i * dx;
+        const x2 = x1 + dx;
+        sum += 0.5 * (f(x1) + f(x2)) * dx;
+      }
+      return sum;
+    }
+
+    function approximateIntegral(a, b, n, method) {
+      const dx = (b - a) / n;
+      let sum = 0;
+
+      for (let i = 0; i < n; i++) {
+        const xL = a + i * dx;
+        const xR = xL + dx;
+
+        if (method === "left") {
+          sum += f(xL) * dx;
+        } else if (method === "right") {
+          sum += f(xR) * dx;
+        } else if (method === "midpoint") {
+          sum += f((xL + xR) / 2) * dx;
+        } else if (method === "trapezoid") {
+          sum += 0.5 * (f(xL) + f(xR)) * dx;
+        }
+      }
+
+      return sum;
+    }
+
+    function getYRange() {
+      let yMin = Infinity;
+      let yMax = -Infinity;
+
+      for (let x = -5; x <= 5; x += 0.02) {
+        const y = f(x);
+        if (y < yMin) yMin = y;
+        if (y > yMax) yMax = y;
+      }
+
+      yMin = Math.min(yMin, 0);
+      yMax = Math.max(yMax, 0);
+
+      const pad = Math.max(1, (yMax - yMin) * 0.15);
+      return { yMin: yMin - pad, yMax: yMax + pad };
+    }
+
+    function mapX(x, xMin, xMax, pad, w) {
+      return pad + ((x - xMin) / (xMax - xMin)) * (w - 2 * pad);
+    }
+
+    function mapY(y, yMin, yMax, pad, h) {
+      return h - pad - ((y - yMin) / (yMax - yMin)) * (h - 2 * pad);
+    }
+
+    function drawAxes(xMin, xMax, yMin, yMax, pad, w, h) {
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1;
+
+      for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+        const px = mapX(x, xMin, xMax, pad, w);
+        ctx.beginPath();
+        ctx.moveTo(px, pad);
+        ctx.lineTo(px, h - pad);
+        ctx.stroke();
+      }
+
+      const yStep = (yMax - yMin) / 8;
+      for (let i = 0; i <= 8; i++) {
+        const y = yMin + i * yStep;
+        const py = mapY(y, yMin, yMax, pad, h);
+        ctx.beginPath();
+        ctx.moveTo(pad, py);
+        ctx.lineTo(w - pad, py);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+
+      const xAxisY = mapY(0, yMin, yMax, pad, h);
+      const yAxisX = mapX(0, xMin, xMax, pad, w);
+
+      ctx.beginPath();
+      ctx.moveTo(pad, xAxisY);
+      ctx.lineTo(w - pad, xAxisY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(yAxisX, pad);
+      ctx.lineTo(yAxisX, h - pad);
+      ctx.stroke();
+
+      ctx.fillStyle = "#374151";
+      ctx.font = "14px Arial";
+
+      for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+        const px = mapX(x, xMin, xMax, pad, w);
+        ctx.fillText(x.toString(), px - 4, xAxisY + 18);
+      }
+
+      for (let i = 0; i <= 8; i++) {
+        const y = yMin + i * yStep;
+        const py = mapY(y, yMin, yMax, pad, h);
+        ctx.fillText(y.toFixed(1), 8, py + 4);
+      }
+    }
+
+    function drawFunction(xMin, xMax, yMin, yMax, pad, w, h) {
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      let started = false;
+      for (let x = xMin; x <= xMax; x += 0.01) {
+        const y = f(x);
+        const px = mapX(x, xMin, xMax, pad, w);
+        const py = mapY(y, yMin, yMax, pad, h);
+
+        if (!started) {
+          ctx.moveTo(px, py);
+          started = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+    }
+
+    function drawArea(a, b, xMin, xMax, yMin, yMax, pad, w, h) {
+      const steps = 400;
+      const dx = (b - a) / steps;
+
+      for (let i = 0; i < steps; i++) {
+        const x1 = a + i * dx;
+        const x2 = x1 + dx;
+        const xm = (x1 + x2) / 2;
+        const ym = f(xm);
+
+        const px1 = mapX(x1, xMin, xMax, pad, w);
+        const px2 = mapX(x2, xMin, xMax, pad, w);
+        const py0 = mapY(0, yMin, yMax, pad, h);
+        const py = mapY(ym, yMin, yMax, pad, h);
+
+        ctx.fillStyle = ym >= 0 ? "rgba(5,150,105,0.28)" : "rgba(220,38,38,0.28)";
+        ctx.fillRect(px1, Math.min(py, py0), px2 - px1, Math.abs(py0 - py));
+      }
+    }
+
+    function drawApproximation(a, b, n, method, xMin, xMax, yMin, yMax, pad, w, h) {
+      const dx = (b - a) / n;
+
+      ctx.lineWidth = 1.5;
+
+      for (let i = 0; i < n; i++) {
+        const xL = a + i * dx;
+        const xR = xL + dx;
+        let height;
+
+        if (method === "left") height = f(xL);
+        else if (method === "right") height = f(xR);
+        else if (method === "midpoint") height = f((xL + xR) / 2);
+        else height = null;
+
+        const pxL = mapX(xL, xMin, xMax, pad, w);
+        const pxR = mapX(xR, xMin, xMax, pad, w);
+        const py0 = mapY(0, yMin, yMax, pad, h);
+
+        if (method === "trapezoid") {
+          const y1 = f(xL);
+          const y2 = f(xR);
+          const py1 = mapY(y1, yMin, yMax, pad, h);
+          const py2 = mapY(y2, yMin, yMax, pad, h);
+
+          ctx.beginPath();
+          ctx.moveTo(pxL, py0);
+          ctx.lineTo(pxL, py1);
+          ctx.lineTo(pxR, py2);
+          ctx.lineTo(pxR, py0);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(37,99,235,0.14)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(37,99,235,0.7)";
+          ctx.stroke();
+        } else {
+          const py = mapY(height, yMin, yMax, pad, h);
+          ctx.fillStyle = "rgba(37,99,235,0.14)";
+          ctx.fillRect(pxL, Math.min(py, py0), pxR - pxL, Math.abs(py0 - py));
+          ctx.strokeStyle = "rgba(37,99,235,0.7)";
+          ctx.strokeRect(pxL, Math.min(py, py0), pxR - pxL, Math.abs(py0 - py));
+        }
+      }
+    }
+
+    function drawBounds(a, b, xMin, xMax, yMin, yMax, pad, w, h) {
+      const pa = mapX(a, xMin, xMax, pad, w);
+      const pb = mapX(b, xMin, xMax, pad, w);
+
+      ctx.strokeStyle = "#111827";
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(pa, pad);
+      ctx.lineTo(pa, h - pad);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(pb, pad);
+      ctx.lineTo(pb, h - pad);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("a", pa - 4, h - pad + 22);
+      ctx.fillText("b", pb - 4, h - pad + 22);
+    }
+
+    function updateExplorer() {
+      let a = parseFloat(aSlider.value);
+      let b = parseFloat(bSlider.value);
+      const n = parseInt(nSlider.value, 10);
+      const method = methodSelect.value;
+
+      if (a > b) [a, b] = [b, a];
+
+      aValue.textContent = a.toFixed(1);
+      bValue.textContent = b.toFixed(1);
+      nValue.textContent = n;
+
+      const dx = (b - a) / n;
+      const approx = approximateIntegral(a, b, n, method);
+      const exact = integrateReference(a, b);
+      const error = Math.abs(approx - exact);
+
+      intervalOut.textContent = `[${fmt(a)}, ${fmt(b)}]`;
+      dxOut.textContent = fmt(dx);
+      approxOut.textContent = fmt(approx);
+      exactOut.textContent = fmt(exact);
+      errorOut.textContent = fmt(error);
+      methodOut.textContent = method === "left"
+        ? "Left"
+        : method === "right"
+        ? "Right"
+        : method === "midpoint"
+        ? "Midpoint"
+        : "Trapezoid";
+
+      statusText.textContent =
+        `For ${labelForFunction()} on [${fmt(a)}, ${fmt(b)}], the integral represents signed area. `
+        + `Positive regions add to the total, while negative regions subtract from it.`;
+
+      drawScene(a, b, n, method);
+    }
+
+    function drawScene(a, b, n, method) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 55;
+      const xMin = -5;
+      const xMax = 5;
+      const { yMin, yMax } = getYRange();
+
+      ctx.clearRect(0, 0, w, h);
+
+      drawAxes(xMin, xMax, yMin, yMax, pad, w, h);
+      drawArea(a, b, xMin, xMax, yMin, yMax, pad, w, h);
+      drawApproximation(a, b, n, method, xMin, xMax, yMin, yMax, pad, w, h);
+      drawFunction(xMin, xMax, yMin, yMax, pad, w, h);
+      drawBounds(a, b, xMin, xMax, yMin, yMax, pad, w, h);
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText(labelForFunction(), 70, 30);
+    }
+
+    function bindEvents() {
+      functionSelect.addEventListener("change", updateExplorer);
+      aSlider.addEventListener("input", updateExplorer);
+      bSlider.addEventListener("input", updateExplorer);
+      nSlider.addEventListener("input", updateExplorer);
+      methodSelect.addEventListener("change", updateExplorer);
+    }
+
+    bindEvents();
+    updateExplorer();
+  </script>
+</body>
+</html>
