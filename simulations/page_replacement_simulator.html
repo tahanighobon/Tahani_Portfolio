@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Replacement Algorithms Simulator</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --danger: #dc2626;
+      --warn: #d97706;
+      --idle: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input, select, button, textarea {
+      font: inherit;
+    }
+
+    select,
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+
+    .box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary:hover {
+      opacity: 0.92;
+      color: white;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    .step-info {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .page-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .page-big {
+      width: 90px;
+      height: 90px;
+      margin: 12px auto 0;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: white;
+      background: var(--accent);
+    }
+
+    .frames-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .frame-box {
+      background: white;
+      border: 2px solid #dbeafe;
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .frame-label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .frame-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .frame-box.changed {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .frame-box.hit {
+      border-color: #10b981;
+      background: #ecfdf5;
+    }
+
+    .timeline-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      min-width: 840px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+
+    tr.active-row {
+      background: #eff6ff;
+    }
+
+    .hit-badge,
+    .fault-badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .hit-badge {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .fault-badge {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    #comparisonCanvas {
+      height: 300px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-right: 8px;
+      vertical-align: middle;
+      border-radius: 4px;
+    }
+
+    .fifo::before { background: #2563eb; }
+    .lru::before { background: #059669; }
+    .optimal::before { background: #d97706; }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .step-info {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Page Replacement Algorithms</h1>
+      <p>
+        Explore how FIFO, LRU, and Optimal page replacement behave with different page reference strings and frame counts.
+        Step through the sequence visually and compare hits, faults, and fault rate.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="algorithmSelect">Algorithm</label>
+          <select id="algorithmSelect">
+            <option value="FIFO">FIFO</option>
+            <option value="LRU">LRU</option>
+            <option value="Optimal">Optimal</option>
+          </select>
+        </div>
+
+        <div class="group">
+          <label for="frameCount">Number of frames</label>
+          <input type="number" id="frameCount" min="1" max="8" value="3" />
+        </div>
+
+        <div class="group">
+          <label for="referenceInput">Page reference string</label>
+          <textarea id="referenceInput">7 0 1 2 0 3 0 4 2 3 0 3 2</textarea>
+        </div>
+
+        <div class="box">
+          <div class="btn-row">
+            <button class="primary" id="runBtn">Run</button>
+            <button id="stepBtn">Next Step</button>
+            <button id="resetBtn">Reset</button>
+            <button id="sampleBtn">Load Sample</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>Step Summary</h3>
+          <div class="status" id="statusText">
+            Ready to simulate page replacement.
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>Key idea</h3>
+          <p style="margin:0; color:var(--muted); line-height:1.6;">
+            A page hit means the requested page is already in memory.
+            A page fault means the page is not in memory and must be loaded into a frame.
+          </p>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="box">
+          <h2>Current Step Visualization</h2>
+          <div class="step-info">
+            <div class="page-card">
+              <div style="font-weight:bold;">Current Page</div>
+              <div class="page-big" id="currentPageBox">-</div>
+              <div style="margin-top:12px; color:var(--muted);" id="currentStepText">
+                Step 0 of 0
+              </div>
+            </div>
+
+            <div>
+              <div class="frames-grid" id="framesGrid"></div>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <small>Hits</small>
+              <strong id="hitsOut">0</strong>
+            </div>
+            <div class="stat">
+              <small>Faults</small>
+              <strong id="faultsOut">0</strong>
+            </div>
+            <div class="stat">
+              <small>Fault rate</small>
+              <strong id="faultRateOut">0.00%</strong>
+            </div>
+            <div class="stat">
+              <small>Algorithm</small>
+              <strong id="algorithmOut">FIFO</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h2>Reference Timeline</h2>
+          <div class="timeline-wrap">
+            <table>
+              <thead>
+                <tr id="timelineHead">
+                  <th>Step</th>
+                  <th>Page</th>
+                  <th>Result</th>
+                  <th>Frames</th>
+                </tr>
+              </thead>
+              <tbody id="timelineBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="box">
+          <h2>Comparison Graph</h2>
+          <canvas id="comparisonCanvas" width="920" height="300"></canvas>
+          <div class="legend">
+            <span class="fifo">FIFO faults</span>
+            <span class="lru">LRU faults</span>
+            <span class="optimal">Optimal faults</span>
+          </div>
+        </div>
+
+        <div class="box notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>FIFO removes the oldest loaded page, even if it may be used again soon.</li>
+            <li>LRU tries to keep recently used pages in memory.</li>
+            <li>Optimal gives the minimum possible faults because it replaces the page used farthest in the future.</li>
+            <li>The same reference string can behave very differently depending on the number of frames.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding page replacement algorithms.
+    </div>
+  </div>
+
+  <script>
+    const algorithmSelect = document.getElementById("algorithmSelect");
+    const frameCountInput = document.getElementById("frameCount");
+    const referenceInput = document.getElementById("referenceInput");
+
+    const runBtn = document.getElementById("runBtn");
+    const stepBtn = document.getElementById("stepBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const sampleBtn = document.getElementById("sampleBtn");
+
+    const currentPageBox = document.getElementById("currentPageBox");
+    const currentStepText = document.getElementById("currentStepText");
+    const framesGrid = document.getElementById("framesGrid");
+    const statusText = document.getElementById("statusText");
+
+    const hitsOut = document.getElementById("hitsOut");
+    const faultsOut = document.getElementById("faultsOut");
+    const faultRateOut = document.getElementById("faultRateOut");
+    const algorithmOut = document.getElementById("algorithmOut");
+
+    const timelineBody = document.getElementById("timelineBody");
+
+    const comparisonCanvas = document.getElementById("comparisonCanvas");
+    const comparisonCtx = comparisonCanvas.getContext("2d");
+
+    let currentSimulation = null;
+    let currentStepIndex = 0;
+
+    function parseReferenceString(text) {
+      return text
+        .split(/[\s,]+/)
+        .map(x => x.trim())
+        .filter(x => x !== "")
+        .map(Number)
+        .filter(x => !Number.isNaN(x));
+    }
+
+    function cloneFrames(frames) {
+      return frames.map(x => x);
+    }
+
+    function simulateFIFO(reference, frameCount) {
+      const frames = Array(frameCount).fill(null);
+      const queue = [];
+      const steps = [];
+      let hits = 0;
+      let faults = 0;
+
+      for (let i = 0; i < reference.length; i++) {
+        const page = reference[i];
+        let hit = frames.includes(page);
+        let replacedIndex = -1;
+        let replacedPage = null;
+
+        if (hit) {
+          hits++;
+        } else {
+          faults++;
+          if (frames.includes(null)) {
+            replacedIndex = frames.indexOf(null);
+            frames[replacedIndex] = page;
+            queue.push(replacedIndex);
+          } else {
+            replacedIndex = queue.shift();
+            replacedPage = frames[replacedIndex];
+            frames[replacedIndex] = page;
+            queue.push(replacedIndex);
+          }
+        }
+
+        steps.push({
+          step: i + 1,
+          page,
+          hit,
+          frames: cloneFrames(frames),
+          replacedIndex,
+          replacedPage,
+          hits,
+          faults
+        });
+      }
+
+      return { steps, hits, faults };
+    }
+
+    function simulateLRU(reference, frameCount) {
+      const frames = Array(frameCount).fill(null);
+      const lastUsed = Array(frameCount).fill(-1);
+      const steps = [];
+      let hits = 0;
+      let faults = 0;
+
+      for (let i = 0; i < reference.length; i++) {
+        const page = reference[i];
+        let frameIndex = frames.indexOf(page);
+        let hit = frameIndex !== -1;
+        let replacedIndex = -1;
+        let replacedPage = null;
+
+        if (hit) {
+          hits++;
+          lastUsed[frameIndex] = i;
+        } else {
+          faults++;
+          if (frames.includes(null)) {
+            replacedIndex = frames.indexOf(null);
+          } else {
+            let minUse = Infinity;
+            for (let j = 0; j < frameCount; j++) {
+              if (lastUsed[j] < minUse) {
+                minUse = lastUsed[j];
+                replacedIndex = j;
+              }
+            }
+            replacedPage = frames[replacedIndex];
+          }
+          frames[replacedIndex] = page;
+          lastUsed[replacedIndex] = i;
+        }
+
+        steps.push({
+          step: i + 1,
+          page,
+          hit,
+          frames: cloneFrames(frames),
+          replacedIndex,
+          replacedPage,
+          hits,
+          faults
+        });
+      }
+
+      return { steps, hits, faults };
+    }
+
+    function simulateOptimal(reference, frameCount) {
+      const frames = Array(frameCount).fill(null);
+      const steps = [];
+      let hits = 0;
+      let faults = 0;
+
+      for (let i = 0; i < reference.length; i++) {
+        const page = reference[i];
+        let hit = frames.includes(page);
+        let replacedIndex = -1;
+        let replacedPage = null;
+
+        if (hit) {
+          hits++;
+        } else {
+          faults++;
+          if (frames.includes(null)) {
+            replacedIndex = frames.indexOf(null);
+            frames[replacedIndex] = page;
+          } else {
+            let farthest = -1;
+            let bestIndex = -1;
+
+            for (let j = 0; j < frameCount; j++) {
+              const framePage = frames[j];
+              let nextUse = Infinity;
+
+              for (let k = i + 1; k < reference.length; k++) {
+                if (reference[k] === framePage) {
+                  nextUse = k;
+                  break;
+                }
+              }
+
+              if (nextUse > farthest) {
+                farthest = nextUse;
+                bestIndex = j;
+              }
+            }
+
+            replacedIndex = bestIndex;
+            replacedPage = frames[replacedIndex];
+            frames[replacedIndex] = page;
+          }
+        }
+
+        steps.push({
+          step: i + 1,
+          page,
+          hit,
+          frames: cloneFrames(frames),
+          replacedIndex,
+          replacedPage,
+          hits,
+          faults
+        });
+      }
+
+      return { steps, hits, faults };
+    }
+
+    function simulateByName(name, reference, frameCount) {
+      if (name === "FIFO") return simulateFIFO(reference, frameCount);
+      if (name === "LRU") return simulateLRU(reference, frameCount);
+      return simulateOptimal(reference, frameCount);
+    }
+
+    function renderFrames(step, frameCount) {
+      framesGrid.innerHTML = "";
+
+      for (let i = 0; i < frameCount; i++) {
+        const frame = document.createElement("div");
+        let className = "frame-box";
+
+        if (step) {
+          if (step.hit && step.frames[i] === step.page) {
+            className += " hit";
+          } else if (!step.hit && step.replacedIndex === i) {
+            className += " changed";
+          }
+        }
+
+        frame.className = className;
+        frame.innerHTML = `
+          <div class="frame-label">Frame ${i + 1}</div>
+          <div class="frame-value">${step && step.frames[i] !== null ? step.frames[i] : "-"}</div>
+        `;
+        framesGrid.appendChild(frame);
+      }
+    }
+
+    function renderTimeline(steps) {
+      timelineBody.innerHTML = "";
+
+      steps.forEach((step, index) => {
+        const tr = document.createElement("tr");
+        if (index === currentStepIndex - 1) tr.classList.add("active-row");
+
+        const resultBadge = step.hit
+          ? `<span class="hit-badge">Hit</span>`
+          : `<span class="fault-badge">Fault</span>`;
+
+        tr.innerHTML = `
+          <td>${step.step}</td>
+          <td>${step.page}</td>
+          <td>${resultBadge}</td>
+          <td>${step.frames.map(v => v === null ? "-" : v).join(" | ")}</td>
+        `;
+
+        timelineBody.appendChild(tr);
+      });
+    }
+
+    function renderCurrentStep() {
+      if (!currentSimulation || currentSimulation.steps.length === 0) {
+        currentPageBox.textContent = "-";
+        currentStepText.textContent = "Step 0 of 0";
+        hitsOut.textContent = "0";
+        faultsOut.textContent = "0";
+        faultRateOut.textContent = "0.00%";
+        algorithmOut.textContent = algorithmSelect.value;
+        renderFrames(null, Number(frameCountInput.value));
+        timelineBody.innerHTML = "";
+        statusText.textContent = "Ready to simulate page replacement.";
+        return;
+      }
+
+      const frameCount = Number(frameCountInput.value);
+      const totalSteps = currentSimulation.steps.length;
+
+      if (currentStepIndex === 0) {
+        currentPageBox.textContent = "-";
+        currentStepText.textContent = `Step 0 of ${totalSteps}`;
+        hitsOut.textContent = "0";
+        faultsOut.textContent = "0";
+        faultRateOut.textContent = "0.00%";
+        algorithmOut.textContent = currentSimulation.algorithm;
+        renderFrames(null, frameCount);
+        statusText.textContent = `Simulation loaded for ${currentSimulation.algorithm}. Click Next Step to start.`;
+      } else {
+        const step = currentSimulation.steps[currentStepIndex - 1];
+        currentPageBox.textContent = step.page;
+        currentStepText.textContent = `Step ${currentStepIndex} of ${totalSteps}`;
+        hitsOut.textContent = step.hits;
+        faultsOut.textContent = step.faults;
+
+        const faultRate = (step.faults / currentStepIndex) * 100;
+        faultRateOut.textContent = `${faultRate.toFixed(2)}%`;
+        algorithmOut.textContent = currentSimulation.algorithm;
+        renderFrames(step, frameCount);
+
+        if (step.hit) {
+          statusText.textContent = `Step ${step.step}: Page ${step.page} is already in memory, so this is a hit.`;
+        } else if (step.replacedPage === null) {
+          statusText.textContent = `Step ${step.step}: Page ${step.page} caused a fault and was loaded into an empty frame.`;
+        } else {
+          statusText.textContent = `Step ${step.step}: Page ${step.page} caused a fault and replaced page ${step.replacedPage}.`;
+        }
+      }
+
+      renderTimeline(currentSimulation.steps);
+      drawComparisonGraph();
+    }
+
+    function runSimulation() {
+      const reference = parseReferenceString(referenceInput.value);
+      const frameCount = Number(frameCountInput.value);
+      const algorithm = algorithmSelect.value;
+
+      if (reference.length === 0) {
+        alert("Please enter at least one page reference.");
+        return;
+      }
+
+      if (!frameCount || frameCount < 1) {
+        alert("Please enter a valid frame count.");
+        return;
+      }
+
+      const result = simulateByName(algorithm, reference, frameCount);
+
+      currentSimulation = {
+        algorithm,
+        reference,
+        frameCount,
+        steps: result.steps,
+        totalHits: result.hits,
+        totalFaults: result.faults
+      };
+
+      currentStepIndex = result.steps.length;
+      renderCurrentStep();
+    }
+
+    function resetSimulation() {
+      const reference = parseReferenceString(referenceInput.value);
+      const frameCount = Number(frameCountInput.value);
+      const algorithm = algorithmSelect.value;
+
+      if (reference.length === 0 || frameCount < 1) {
+        currentSimulation = null;
+        currentStepIndex = 0;
+        renderCurrentStep();
+        drawComparisonGraph();
+        return;
+      }
+
+      const result = simulateByName(algorithm, reference, frameCount);
+
+      currentSimulation = {
+        algorithm,
+        reference,
+        frameCount,
+        steps: result.steps,
+        totalHits: result.hits,
+        totalFaults: result.faults
+      };
+
+      currentStepIndex = 0;
+      renderCurrentStep();
+    }
+
+    function nextStep() {
+      if (!currentSimulation) {
+        resetSimulation();
+      }
+
+      if (!currentSimulation) return;
+
+      if (currentStepIndex < currentSimulation.steps.length) {
+        currentStepIndex++;
+        renderCurrentStep();
+      }
+    }
+
+    function drawComparisonGraph() {
+      const ctx = comparisonCtx;
+      const w = comparisonCanvas.width;
+      const h = comparisonCanvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const reference = parseReferenceString(referenceInput.value);
+      const frameCount = Number(frameCountInput.value);
+
+      if (reference.length === 0 || frameCount < 1) {
+        return;
+      }
+
+      const fifo = simulateFIFO(reference, frameCount).faults;
+      const lru = simulateLRU(reference, frameCount).faults;
+      const optimal = simulateOptimal(reference, frameCount).faults;
+
+      const data = [
+        { label: "FIFO", value: fifo, color: "#2563eb" },
+        { label: "LRU", value: lru, color: "#059669" },
+        { label: "Optimal", value: optimal, color: "#d97706" }
+      ];
+
+      const padL = 70;
+      const padR = 30;
+      const padT = 25;
+      const padB = 55;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+      const maxVal = Math.max(...data.map(d => d.value), 1);
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= maxVal; i++) {
+        const y = h - padB - (i / maxVal) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(w - padR, y);
+        ctx.stroke();
+
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "13px Arial";
+        ctx.fillText(String(i), 40, y + 4);
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padL, padT);
+      ctx.lineTo(padL, h - padB);
+      ctx.lineTo(w - padR, h - padB);
+      ctx.stroke();
+
+      const barWidth = 120;
+      const gap = 90;
+      const startX = padL + 80;
+
+      data.forEach((item, index) => {
+        const x = startX + index * (barWidth + gap);
+        const barHeight = (item.value / maxVal) * plotH;
+        const y = h - padB - barHeight;
+
+        ctx.fillStyle = item.color;
+        ctx.fillRect(x, y, barWidth, barHeight);
+
+        ctx.fillStyle = "#111827";
+        ctx.font = "15px Arial";
+        ctx.fillText(item.label, x + 28, h - padB + 25);
+        ctx.fillText(String(item.value), x + 50, y - 8);
+      });
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText("Page Faults", 20, 22);
+    }
+
+    function loadSample() {
+      algorithmSelect.value = "FIFO";
+      frameCountInput.value = 3;
+      referenceInput.value = "7 0 1 2 0 3 0 4 2 3 0 3 2";
+      resetSimulation();
+    }
+
+    runBtn.addEventListener("click", runSimulation);
+    resetBtn.addEventListener("click", resetSimulation);
+    stepBtn.addEventListener("click", nextStep);
+    sampleBtn.addEventListener("click", loadSample);
+
+    algorithmSelect.addEventListener("change", resetSimulation);
+    frameCountInput.addEventListener("input", resetSimulation);
+    referenceInput.addEventListener("input", resetSimulation);
+
+    loadSample();
+  </script>
+</body>
+</html>

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wind Load on Tall Buildings</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --wind: #0ea5e9;
+      --high: #ef4444;
+      --mid: #f59e0b;
+      --low: #10b981;
+      --dark: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input, select, button {
+      font: inherit;
+    }
+
+    input[type="range"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 78px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .value-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      text-align: center;
+      padding: 10px 6px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary:hover {
+      opacity: 0.92;
+      color: white;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .pill.low {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .pill.mid {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .pill.high {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 1150px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Wind Load on Tall Buildings</h1>
+      <p>
+        Explore how building height, shape, and wind speed affect wind pressure zones, façade loading,
+        sway behavior, and a simplified structural response.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Inputs</h2>
+
+        <div class="group">
+          <label for="heightSlider">Building height</label>
+          <div class="range-row">
+            <input type="range" id="heightSlider" min="50" max="400" step="5" value="180" />
+            <div class="value-box" id="heightValue">180 m</div>
+          </div>
+        </div>
+
+        <div class="group">
+          <label for="shapeSelect">Building shape</label>
+          <select id="shapeSelect">
+            <option value="rectangular">Rectangular tower</option>
+            <option value="circular">Circular tower</option>
+            <option value="tapered">Tapered tower</option>
+            <option value="setback">Setback tower</option>
+            <option value="slender">Slender tower</option>
+          </select>
+        </div>
+
+        <div class="group">
+          <label for="windSlider">Wind speed</label>
+          <div class="range-row">
+            <input type="range" id="windSlider" min="10" max="70" step="1" value="35" />
+            <div class="value-box" id="windValue">35 m/s</div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="btn-row">
+            <button class="primary" id="updateBtn">Update Simulation</button>
+            <button id="sampleUrbanBtn">Urban Sample</button>
+            <button id="sampleCoastalBtn">Coastal Sample</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>What this shows</h3>
+          <ul style="margin:0; padding-left:20px; color:var(--muted); line-height:1.6;">
+            <li>Windward pressure increases with wind speed and elevation.</li>
+            <li>Top displacement grows strongly with building height.</li>
+            <li>Shape changes aerodynamic behavior and sway sensitivity.</li>
+            <li>This is a conceptual visualization, not a code design check.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>Status</h3>
+          <div class="status" id="statusText">
+            Change the inputs and update the simulation to see wind pressure zones and sway response.
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="box">
+          <h2>Key Results</h2>
+          <div class="stats">
+            <div class="stat">
+              <small>Base pressure</small>
+              <strong id="basePressureOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Mid-height pressure</small>
+              <strong id="midPressureOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Top pressure</small>
+              <strong id="topPressureOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Top sway</small>
+              <strong id="swayOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Response level</small>
+              <strong id="responseOut">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="box">
+            <h2>Building, Wind Zones, and Sway</h2>
+            <canvas id="buildingCanvas" width="760" height="520"></canvas>
+          </div>
+
+          <div class="box">
+            <h2>Façade Pressure by Height</h2>
+            <canvas id="pressureCanvas" width="520" height="520"></canvas>
+          </div>
+        </div>
+
+        <div class="box">
+          <h2>Pressure Zones and Structural Response Idea</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Zone</th>
+                  <th>Height range</th>
+                  <th>Façade pressure</th>
+                  <th>Behavior idea</th>
+                </tr>
+              </thead>
+              <tbody id="zonesBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="box notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>Taller buildings tend to experience larger lateral displacement under the same wind speed.</li>
+            <li>The upper zone usually sees higher wind pressure than the lower zone.</li>
+            <li>Smoother or more aerodynamic shapes can reduce pressure and sway effects.</li>
+            <li>As sway increases, stiffness systems such as cores, outriggers, or bracing become more important.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Educational wind-response visualizer using simplified assumptions. Not for final structural design.
+    </div>
+  </div>
+
+  <script>
+    const heightSlider = document.getElementById("heightSlider");
+    const windSlider = document.getElementById("windSlider");
+    const shapeSelect = document.getElementById("shapeSelect");
+
+    const heightValue = document.getElementById("heightValue");
+    const windValue = document.getElementById("windValue");
+
+    const updateBtn = document.getElementById("updateBtn");
+    const sampleUrbanBtn = document.getElementById("sampleUrbanBtn");
+    const sampleCoastalBtn = document.getElementById("sampleCoastalBtn");
+
+    const statusText = document.getElementById("statusText");
+    const basePressureOut = document.getElementById("basePressureOut");
+    const midPressureOut = document.getElementById("midPressureOut");
+    const topPressureOut = document.getElementById("topPressureOut");
+    const swayOut = document.getElementById("swayOut");
+    const responseOut = document.getElementById("responseOut");
+    const zonesBody = document.getElementById("zonesBody");
+
+    const buildingCanvas = document.getElementById("buildingCanvas");
+    const pressureCanvas = document.getElementById("pressureCanvas");
+    const bCtx = buildingCanvas.getContext("2d");
+    const pCtx = pressureCanvas.getContext("2d");
+
+    const shapeData = {
+      rectangular: { label: "Rectangular tower", cd: 1.30, swayFactor: 1.00, slenderness: 7 },
+      circular:    { label: "Circular tower",    cd: 0.85, swayFactor: 0.80, slenderness: 6 },
+      tapered:     { label: "Tapered tower",     cd: 1.00, swayFactor: 0.85, slenderness: 8 },
+      setback:     { label: "Setback tower",     cd: 1.10, swayFactor: 0.90, slenderness: 7 },
+      slender:     { label: "Slender tower",     cd: 1.40, swayFactor: 1.35, slenderness: 10 }
+    };
+
+    function updateLabels() {
+      heightValue.textContent = `${heightSlider.value} m`;
+      windValue.textContent = `${windSlider.value} m/s`;
+    }
+
+    function exposureFactor(z, H) {
+      const ratio = Math.max(z / 10, 1);
+      const expo = Math.pow(ratio, 0.18);
+      const heightBoost = 1 + 0.08 * Math.min(H / 200, 2);
+      return expo * heightBoost;
+    }
+
+    function pressureAtHeight(windSpeed, cd, z, H) {
+      const q = 0.613 * windSpeed * windSpeed; // N/m²
+      const kz = exposureFactor(z, H);
+      return q * kz * cd / 1000; // kPa
+    }
+
+    function estimateTopSway(height, windSpeed, swayFactor) {
+      const driftRatio =
+        (1 / 7000) *
+        Math.pow(windSpeed / 30, 2) *
+        Math.pow(height / 150, 1.7) *
+        swayFactor;
+
+      const topDispMm = height * 1000 * driftRatio;
+      return Math.max(topDispMm, 5);
+    }
+
+    function getResponseLevel(swayMm, topPressure) {
+      if (swayMm < 150 && topPressure < 2.2) {
+        return { label: "Low", className: "low", idea: "Stable response. Conventional stiffness systems may be sufficient." };
+      }
+      if (swayMm < 350 && topPressure < 3.5) {
+        return { label: "Moderate", className: "mid", idea: "Check lateral stiffness and serviceability. Core and bracing become more important." };
+      }
+      return { label: "High", className: "high", idea: "Strong wind response. Advanced lateral systems and drift control are likely needed." };
+    }
+
+    function getZoneBehavior(zoneName, responseLabel) {
+      if (zoneName === "Lower zone") {
+        return responseLabel === "High"
+          ? "Lower pressures than the top, but large cumulative load contributes to base shear."
+          : "Generally lower pressure, but still important for total building force.";
+      }
+      if (zoneName === "Middle zone") {
+        return responseLabel === "High"
+          ? "Noticeable façade loading and increasing contribution to overturning moment."
+          : "Transition zone where both pressure and sway influence become clearer.";
+      }
+      return responseLabel === "High"
+        ? "Highest façade pressure zone. Critical for cladding pressure and lateral response."
+        : "Top zone is most sensitive to wind acceleration and higher local pressure.";
+    }
+
+    function drawBuildingScene(H, shapeKey, windSpeed, pBase, pMid, pTop, swayMm) {
+      bCtx.clearRect(0, 0, buildingCanvas.width, buildingCanvas.height);
+
+      const W = buildingCanvas.width;
+      const Hc = buildingCanvas.height;
+      const groundY = Hc - 50;
+      const buildingHeightPx = 360;
+      const baseX = 310;
+      const shape = shapeData[shapeKey];
+
+      const topShiftPx = Math.min(90, swayMm / 12);
+
+      // Sky
+      bCtx.fillStyle = "#f8fbff";
+      bCtx.fillRect(0, 0, W, Hc);
+
+      // Ground
+      bCtx.fillStyle = "#e5e7eb";
+      bCtx.fillRect(0, groundY, W, Hc - groundY);
+
+      bCtx.strokeStyle = "#9ca3af";
+      bCtx.lineWidth = 2;
+      bCtx.beginPath();
+      bCtx.moveTo(0, groundY);
+      bCtx.lineTo(W, groundY);
+      bCtx.stroke();
+
+      // Wind arrows
+      bCtx.strokeStyle = "#0ea5e9";
+      bCtx.fillStyle = "#0ea5e9";
+      bCtx.lineWidth = 2;
+
+      const arrowCount = 6;
+      for (let i = 0; i < arrowCount; i++) {
+        const y = 80 + i * 55;
+        const len = 70 + (windSpeed - 10) * 1.3;
+        const x1 = 40;
+        const x2 = x1 + len;
+
+        bCtx.beginPath();
+        bCtx.moveTo(x1, y);
+        bCtx.lineTo(x2, y);
+        bCtx.stroke();
+
+        bCtx.beginPath();
+        bCtx.moveTo(x2, y);
+        bCtx.lineTo(x2 - 10, y - 6);
+        bCtx.lineTo(x2 - 10, y + 6);
+        bCtx.closePath();
+        bCtx.fill();
+      }
+
+      bCtx.fillStyle = "#0ea5e9";
+      bCtx.font = "16px Arial";
+      bCtx.fillText(`Wind = ${windSpeed} m/s`, 40, 45);
+
+      function widthAt(t) {
+        // t: 0 base to 1 top
+        if (shapeKey === "rectangular") return 120;
+        if (shapeKey === "circular") return 110;
+        if (shapeKey === "tapered") return 132 - 42 * t;
+        if (shapeKey === "setback") {
+          if (t < 0.35) return 125;
+          if (t < 0.7) return 102;
+          return 82;
+        }
+        if (shapeKey === "slender") return 78;
+        return 120;
+      }
+
+      function centerShift(t) {
+        return topShiftPx * t * t;
+      }
+
+      const segments = 40;
+      const leftPts = [];
+      const rightPts = [];
+
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const y = groundY - buildingHeightPx * t;
+        const w = widthAt(t);
+        const shift = centerShift(t);
+        const cx = baseX + shift;
+
+        if (shapeKey === "circular") {
+          const bulge = Math.sin(Math.PI * t) * 10;
+          leftPts.push({ x: cx - (w / 2 + bulge), y });
+          rightPts.push({ x: cx + (w / 2 + bulge), y });
+        } else {
+          leftPts.push({ x: cx - w / 2, y });
+          rightPts.push({ x: cx + w / 2, y });
+        }
+      }
+
+      // Building body
+      bCtx.beginPath();
+      bCtx.moveTo(leftPts[0].x, leftPts[0].y);
+      leftPts.forEach(pt => bCtx.lineTo(pt.x, pt.y));
+      rightPts.slice().reverse().forEach(pt => bCtx.lineTo(pt.x, pt.y));
+      bCtx.closePath();
+      bCtx.fillStyle = "#dbeafe";
+      bCtx.fill();
+      bCtx.strokeStyle = "#1e3a8a";
+      bCtx.lineWidth = 2;
+      bCtx.stroke();
+
+      // Pressure zones on windward façade
+      const zoneFractions = [
+        { name: "Lower zone", t1: 0.0, t2: 0.33, color: "rgba(16,185,129,0.45)", pressure: pBase },
+        { name: "Middle zone", t1: 0.33, t2: 0.66, color: "rgba(245,158,11,0.45)", pressure: pMid },
+        { name: "Upper zone", t1: 0.66, t2: 1.0, color: "rgba(239,68,68,0.45)", pressure: pTop }
+      ];
+
+      zoneFractions.forEach(z => {
+        const y1 = groundY - buildingHeightPx * z.t1;
+        const y2 = groundY - buildingHeightPx * z.t2;
+        const tCenter = (z.t1 + z.t2) / 2;
+        const xShift = centerShift(tCenter);
+        const w = widthAt(tCenter);
+
+        bCtx.fillStyle = z.color;
+        bCtx.beginPath();
+        bCtx.moveTo(baseX + xShift - w / 2, y1);
+        bCtx.lineTo(baseX + xShift - w / 2 + 18, y1);
+        bCtx.lineTo(baseX + xShift - w / 2 + 18, y2);
+        bCtx.lineTo(baseX + xShift - w / 2, y2);
+        bCtx.closePath();
+        bCtx.fill();
+
+        bCtx.fillStyle = "#111827";
+        bCtx.font = "13px Arial";
+        bCtx.fillText(`${z.pressure.toFixed(2)} kPa`, baseX + xShift - w / 2 + 28, (y1 + y2) / 2);
+      });
+
+      // Sway line
+      bCtx.strokeStyle = "#7c3aed";
+      bCtx.lineWidth = 3;
+      bCtx.beginPath();
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const y = groundY - buildingHeightPx * t;
+        const x = baseX + centerShift(t);
+        if (i === 0) bCtx.moveTo(x, y);
+        else bCtx.lineTo(x, y);
+      }
+      bCtx.stroke();
+
+      bCtx.fillStyle = "#7c3aed";
+      bCtx.font = "14px Arial";
+      bCtx.fillText(`Top sway ≈ ${swayMm.toFixed(0)} mm`, baseX + topShiftPx + 20, groundY - buildingHeightPx - 10);
+
+      // Height label
+      bCtx.strokeStyle = "#6b7280";
+      bCtx.lineWidth = 1.5;
+      bCtx.beginPath();
+      bCtx.moveTo(540, groundY);
+      bCtx.lineTo(540, groundY - buildingHeightPx);
+      bCtx.stroke();
+
+      bCtx.beginPath();
+      bCtx.moveTo(532, groundY);
+      bCtx.lineTo(548, groundY);
+      bCtx.moveTo(532, groundY - buildingHeightPx);
+      bCtx.lineTo(548, groundY - buildingHeightPx);
+      bCtx.stroke();
+
+      bCtx.fillStyle = "#111827";
+      bCtx.font = "14px Arial";
+      bCtx.fillText(`${H} m`, 552, groundY - buildingHeightPx / 2);
+
+      // Title inside drawing
+      bCtx.fillStyle = "#111827";
+      bCtx.font = "16px Arial";
+      bCtx.fillText(`${shape.label}`, 20, Hc - 18);
+    }
+
+    function drawPressureChart(baseP, midP, topP) {
+      pCtx.clearRect(0, 0, pressureCanvas.width, pressureCanvas.height);
+
+      const W = pressureCanvas.width;
+      const H = pressureCanvas.height;
+      const padL = 80;
+      const padR = 30;
+      const padT = 40;
+      const padB = 50;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+
+      const values = [
+        { label: "Lower", value: baseP, color: "#10b981" },
+        { label: "Middle", value: midP, color: "#f59e0b" },
+        { label: "Upper", value: topP, color: "#ef4444" }
+      ];
+
+      const maxVal = Math.max(topP, midP, baseP, 1);
+
+      pCtx.fillStyle = "#111827";
+      pCtx.font = "16px Arial";
+      pCtx.fillText("Windward Façade Pressure", 16, 24);
+
+      pCtx.strokeStyle = "#111827";
+      pCtx.lineWidth = 2;
+      pCtx.beginPath();
+      pCtx.moveTo(padL, padT);
+      pCtx.lineTo(padL, H - padB);
+      pCtx.lineTo(W - padR, H - padB);
+      pCtx.stroke();
+
+      for (let i = 0; i <= 5; i++) {
+        const v = (maxVal / 5) * i;
+        const y = H - padB - (plotH / 5) * i;
+
+        pCtx.strokeStyle = "#e5e7eb";
+        pCtx.beginPath();
+        pCtx.moveTo(padL, y);
+        pCtx.lineTo(W - padR, y);
+        pCtx.stroke();
+
+        pCtx.fillStyle = "#6b7280";
+        pCtx.font = "12px Arial";
+        pCtx.fillText(v.toFixed(1), 28, y + 4);
+      }
+
+      const barW = 70;
+      const gap = 42;
+      const totalBarsW = values.length * barW + (values.length - 1) * gap;
+      const startX = padL + (plotW - totalBarsW) / 2;
+
+      values.forEach((item, i) => {
+        const x = startX + i * (barW + gap);
+        const h = (item.value / maxVal) * plotH;
+        const y = H - padB - h;
+
+        pCtx.fillStyle = item.color;
+        pCtx.fillRect(x, y, barW, h);
+
+        pCtx.fillStyle = "#111827";
+        pCtx.font = "13px Arial";
+        pCtx.fillText(item.label, x + 10, H - padB + 20);
+        pCtx.fillText(`${item.value.toFixed(2)} kPa`, x - 4, y - 8);
+      });
+
+      pCtx.save();
+      pCtx.translate(18, H / 2 + 30);
+      pCtx.rotate(-Math.PI / 2);
+      pCtx.fillStyle = "#111827";
+      pCtx.font = "14px Arial";
+      pCtx.fillText("Pressure (kPa)", 0, 0);
+      pCtx.restore();
+    }
+
+    function renderZonesTable(H, pBase, pMid, pTop, response) {
+      zonesBody.innerHTML = "";
+
+      const zones = [
+        {
+          name: "Lower zone",
+          range: `0 – ${(H * 0.33).toFixed(0)} m`,
+          pressure: `${pBase.toFixed(2)} kPa`,
+          behavior: getZoneBehavior("Lower zone", response.label)
+        },
+        {
+          name: "Middle zone",
+          range: `${(H * 0.33).toFixed(0)} – ${(H * 0.66).toFixed(0)} m`,
+          pressure: `${pMid.toFixed(2)} kPa`,
+          behavior: getZoneBehavior("Middle zone", response.label)
+        },
+        {
+          name: "Upper zone",
+          range: `${(H * 0.66).toFixed(0)} – ${H.toFixed(0)} m`,
+          pressure: `${pTop.toFixed(2)} kPa`,
+          behavior: getZoneBehavior("Upper zone", response.label)
+        }
+      ];
+
+      zones.forEach(z => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${z.name}</td>
+          <td>${z.range}</td>
+          <td>${z.pressure}</td>
+          <td>${z.behavior}</td>
+        `;
+        zonesBody.appendChild(tr);
+      });
+    }
+
+    function updateSimulation() {
+      const buildingHeight = Number(heightSlider.value);
+      const windSpeed = Number(windSlider.value);
+      const shapeKey = shapeSelect.value;
+      const shape = shapeData[shapeKey];
+
+      const pBase = pressureAtHeight(windSpeed, shape.cd, buildingHeight * 0.15, buildingHeight);
+      const pMid  = pressureAtHeight(windSpeed, shape.cd, buildingHeight * 0.50, buildingHeight);
+      const pTop  = pressureAtHeight(windSpeed, shape.cd, buildingHeight * 0.90, buildingHeight);
+
+      const swayMm = estimateTopSway(buildingHeight, windSpeed, shape.swayFactor);
+      const response = getResponseLevel(swayMm, pTop);
+
+      basePressureOut.textContent = `${pBase.toFixed(2)} kPa`;
+      midPressureOut.textContent = `${pMid.toFixed(2)} kPa`;
+      topPressureOut.textContent = `${pTop.toFixed(2)} kPa`;
+      swayOut.textContent = `${swayMm.toFixed(0)} mm`;
+      responseOut.innerHTML = `<span class="pill ${response.className}">${response.label}</span>`;
+
+      statusText.textContent =
+        `${shape.label} at ${buildingHeight} m under ${windSpeed} m/s wind shows a ${response.label.toLowerCase()} wind-response level. ${response.idea}`;
+
+      drawBuildingScene(buildingHeight, shapeKey, windSpeed, pBase, pMid, pTop, swayMm);
+      drawPressureChart(pBase, pMid, pTop);
+      renderZonesTable(buildingHeight, pBase, pMid, pTop, response);
+    }
+
+    function loadUrbanSample() {
+      heightSlider.value = 180;
+      windSlider.value = 30;
+      shapeSelect.value = "rectangular";
+      updateLabels();
+      updateSimulation();
+    }
+
+    function loadCoastalSample() {
+      heightSlider.value = 280;
+      windSlider.value = 52;
+      shapeSelect.value = "slender";
+      updateLabels();
+      updateSimulation();
+    }
+
+    heightSlider.addEventListener("input", updateLabels);
+    windSlider.addEventListener("input", updateLabels);
+    updateBtn.addEventListener("click", updateSimulation);
+    sampleUrbanBtn.addEventListener("click", loadUrbanSample);
+    sampleCoastalBtn.addEventListener("click", loadCoastalSample);
+
+    updateLabels();
+    updateSimulation();
+  </script>
+</body>
+</html>

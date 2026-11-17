@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projectile Motion</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --warn: #d97706;
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      font-size: 15px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .slider-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .secondary {
+      background: #ecfeff;
+      color: #0f766e;
+    }
+
+    .danger {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .formula-box, .scene-wrap, .notes-wrap {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 450px;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    .readout {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-row {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Projectile Motion</h1>
+      <p>
+        Explore how launch angle, speed, gravity, and starting height affect the path of a projectile.
+        Watch the motion, compare horizontal and vertical behavior, and observe how the trajectory changes.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="planetSelect">Gravity setting</label>
+          <select id="planetSelect">
+            <option value="9.81">Earth (9.81 m/s²)</option>
+            <option value="1.62">Moon (1.62 m/s²)</option>
+            <option value="3.71">Mars (3.71 m/s²)</option>
+            <option value="24.79">Jupiter (24.79 m/s²)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="slider-box">
+          <label for="gravitySlider">
+            Gravity g
+            <span class="value" id="gravityValue">9.81 m/s²</span>
+          </label>
+          <input type="range" id="gravitySlider" min="0.5" max="30" step="0.01" value="9.81" />
+        </div>
+
+        <div class="slider-box">
+          <label for="speedSlider">
+            Initial speed
+            <span class="value" id="speedValue">25.0 m/s</span>
+          </label>
+          <input type="range" id="speedSlider" min="1" max="80" step="0.1" value="25" />
+        </div>
+
+        <div class="slider-box">
+          <label for="angleSlider">
+            Launch angle
+            <span class="value" id="angleValue">45.0°</span>
+          </label>
+          <input type="range" id="angleSlider" min="0" max="90" step="0.1" value="45" />
+        </div>
+
+        <div class="slider-box">
+          <label for="heightSlider">
+            Initial height
+            <span class="value" id="heightValue">0.0 m</span>
+          </label>
+          <input type="range" id="heightSlider" min="0" max="50" step="0.1" value="0" />
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="playBtn">Play</button>
+          <button class="secondary" id="pauseBtn">Pause</button>
+          <button class="danger" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="formula-box">
+          <h3>Key equations</h3>
+          <div class="formula">x = v₀ cos(θ) · t</div><br>
+          <div class="formula">y = h₀ + v₀ sin(θ) · t - ½gt²</div><br>
+          <div class="formula">vₓ = constant, vᵧ changes with gravity</div>
+
+          <div class="status" id="statusText">
+            A projectile moves horizontally at constant speed while gravity changes its vertical motion.
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Horizontal speed</small>
+            <strong id="vxOut">17.68 m/s</strong>
+          </div>
+          <div class="stat">
+            <small>Vertical speed</small>
+            <strong id="vyOut">17.68 m/s</strong>
+          </div>
+          <div class="stat">
+            <small>Time of flight</small>
+            <strong id="timeOut">3.60 s</strong>
+          </div>
+          <div class="stat">
+            <small>Maximum height</small>
+            <strong id="heightOut">15.93 m</strong>
+          </div>
+          <div class="stat">
+            <small>Horizontal range</small>
+            <strong id="rangeOut">63.71 m</strong>
+          </div>
+          <div class="stat">
+            <small>Current time</small>
+            <strong id="currentTimeOut">0.00 s</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="scene-wrap">
+          <h2>Projectile Path</h2>
+          <canvas id="simCanvas" width="920" height="450"></canvas>
+          <div class="readout" id="readoutText">
+            The red ball shows the current projectile position. The blue curve shows the full trajectory.
+          </div>
+        </div>
+
+        <div class="notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>Horizontal motion stays uniform when air resistance is ignored.</li>
+            <li>Vertical motion is accelerated downward by gravity.</li>
+            <li>Changing the angle changes both range and maximum height.</li>
+            <li>Different planets produce different trajectories because gravity changes.</li>
+          </ul>
+          <p>
+            A useful classroom activity is to compare the same launch on Earth, Moon, and Mars, then ask students why the paths are different.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding projectile motion.
+    </div>
+  </div>
+
+  <script>
+    const planetSelect = document.getElementById("planetSelect");
+    const gravitySlider = document.getElementById("gravitySlider");
+    const speedSlider = document.getElementById("speedSlider");
+    const angleSlider = document.getElementById("angleSlider");
+    const heightSlider = document.getElementById("heightSlider");
+
+    const gravityValue = document.getElementById("gravityValue");
+    const speedValue = document.getElementById("speedValue");
+    const angleValue = document.getElementById("angleValue");
+    const heightValue = document.getElementById("heightValue");
+
+    const vxOut = document.getElementById("vxOut");
+    const vyOut = document.getElementById("vyOut");
+    const timeOut = document.getElementById("timeOut");
+    const heightOut = document.getElementById("heightOut");
+    const rangeOut = document.getElementById("rangeOut");
+    const currentTimeOut = document.getElementById("currentTimeOut");
+    const statusText = document.getElementById("statusText");
+
+    const canvas = document.getElementById("simCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let animating = false;
+    let simTime = 0;
+    let lastTimestamp = null;
+
+    function degToRad(d) {
+      return d * Math.PI / 180;
+    }
+
+    function fmt(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function syncPlanetControl() {
+      const selected = planetSelect.value;
+      if (selected !== "custom") {
+        gravitySlider.value = selected;
+      }
+      update();
+    }
+
+    function getModel() {
+      const g = parseFloat(gravitySlider.value);
+      const v0 = parseFloat(speedSlider.value);
+      const angle = parseFloat(angleSlider.value);
+      const h0 = parseFloat(heightSlider.value);
+
+      const rad = degToRad(angle);
+      const vx = v0 * Math.cos(rad);
+      const vy = v0 * Math.sin(rad);
+
+      const disc = vy * vy + 2 * g * h0;
+      const flightTime = (vy + Math.sqrt(Math.max(0, disc))) / g;
+      const maxHeight = h0 + (vy * vy) / (2 * g);
+      const range = vx * flightTime;
+
+      return { g, v0, angle, h0, rad, vx, vy, flightTime, maxHeight, range };
+    }
+
+    function positionAtTime(t, m) {
+      const x = m.vx * t;
+      const y = m.h0 + m.vy * t - 0.5 * m.g * t * t;
+      return { x, y };
+    }
+
+    function velocityAtTime(t, m) {
+      const vx = m.vx;
+      const vy = m.vy - m.g * t;
+      return { vx, vy };
+    }
+
+    function updateText(m) {
+      gravityValue.textContent = `${m.g.toFixed(2)} m/s²`;
+      speedValue.textContent = `${m.v0.toFixed(1)} m/s`;
+      angleValue.textContent = `${m.angle.toFixed(1)}°`;
+      heightValue.textContent = `${m.h0.toFixed(1)} m`;
+
+      vxOut.textContent = `${fmt(m.vx)} m/s`;
+      vyOut.textContent = `${fmt(m.vy)} m/s`;
+      timeOut.textContent = `${fmt(m.flightTime)} s`;
+      heightOut.textContent = `${fmt(m.maxHeight)} m`;
+      rangeOut.textContent = `${fmt(m.range)} m`;
+      currentTimeOut.textContent = `${fmt(simTime)} s`;
+
+      if (m.angle === 45 && m.h0 === 0) {
+        statusText.textContent = "At ground level, a launch angle near 45° often gives the greatest range when air resistance is ignored.";
+      } else if (m.angle < 20) {
+        statusText.textContent = "A small launch angle gives a flatter path and a lower maximum height.";
+      } else if (m.angle > 70) {
+        statusText.textContent = "A large launch angle sends the projectile much higher, but usually reduces the range.";
+      } else {
+        statusText.textContent = "Projectile motion combines constant horizontal motion with vertically accelerated motion under gravity.";
+      }
+    }
+
+    function drawScene(m) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const margin = 50;
+      const groundY = canvas.height - 50;
+      const xMax = Math.max(m.range * 1.08, 10);
+      const yMax = Math.max(m.maxHeight * 1.25, 10);
+
+      function toCanvas(x, y) {
+        const px = margin + (x / xMax) * (canvas.width - 2 * margin);
+        const py = groundY - (y / yMax) * (groundY - margin);
+        return { px, py };
+      }
+
+      // sky
+      const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      sky.addColorStop(0, "#e0f2fe");
+      sky.addColorStop(1, "#ffffff");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // ground
+      ctx.fillStyle = "#dcfce7";
+      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+      ctx.strokeStyle = "#4b5563";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(canvas.width, groundY);
+      ctx.stroke();
+
+      // grid
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const x = margin + ((canvas.width - 2 * margin) / 10) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, margin);
+        ctx.lineTo(x, groundY);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 8; i++) {
+        const y = groundY - ((groundY - margin) / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(margin, y);
+        ctx.lineTo(canvas.width - margin, y);
+        ctx.stroke();
+      }
+
+      // axes
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(margin, margin);
+      ctx.lineTo(margin, groundY);
+      ctx.lineTo(canvas.width - margin, groundY);
+      ctx.stroke();
+
+      // labels
+      ctx.fillStyle = "#111827";
+      ctx.font = "14px Arial";
+      ctx.fillText("Height (m)", 16, 24);
+      ctx.fillText("Distance (m)", canvas.width - 120, canvas.height - 15);
+
+      // tick labels
+      ctx.fillStyle = "#6b7280";
+      for (let i = 0; i <= 10; i++) {
+        const xVal = (xMax / 10) * i;
+        const x = margin + ((canvas.width - 2 * margin) / 10) * i;
+        ctx.fillText(xVal.toFixed(0), x - 8, groundY + 18);
+      }
+      for (let i = 0; i <= 8; i++) {
+        const yVal = (yMax / 8) * i;
+        const y = groundY - ((groundY - margin) / 8) * i;
+        ctx.fillText(yVal.toFixed(0), margin - 36, y + 4);
+      }
+
+      // launcher
+      const launchPos = toCanvas(0, m.h0);
+      ctx.fillStyle = "#6b7280";
+      ctx.fillRect(launchPos.px - 10, launchPos.py - 10, 20, 20);
+
+      // full trajectory
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      let first = true;
+      for (let t = 0; t <= m.flightTime; t += m.flightTime / 160) {
+        const p = positionAtTime(t, m);
+        const c = toCanvas(p.x, Math.max(0, p.y));
+        if (first) {
+          ctx.moveTo(c.px, c.py);
+          first = false;
+        } else {
+          ctx.lineTo(c.px, c.py);
+        }
+      }
+      ctx.stroke();
+
+      // current projectile
+      const clampedTime = Math.min(simTime, m.flightTime);
+      const currentPos = positionAtTime(clampedTime, m);
+      const c = toCanvas(currentPos.x, Math.max(0, currentPos.y));
+
+      ctx.fillStyle = "#dc2626";
+      ctx.beginPath();
+      ctx.arc(c.px, c.py, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // velocity vector
+      const vel = velocityAtTime(clampedTime, m);
+      const scale = 3;
+      ctx.strokeStyle = "#059669";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(c.px, c.py);
+      ctx.lineTo(c.px + vel.vx * scale, c.py - vel.vy * scale);
+      ctx.stroke();
+
+      // current info
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText(`t = ${fmt(clampedTime)} s`, 20, 28);
+      ctx.fillText(`x = ${fmt(currentPos.x)} m`, 20, 50);
+      ctx.fillText(`y = ${fmt(Math.max(0, currentPos.y))} m`, 20, 72);
+
+      if (simTime >= m.flightTime) {
+        ctx.fillStyle = "#b91c1c";
+        ctx.font = "bold 18px Arial";
+        ctx.fillText("Projectile has landed", canvas.width - 210, 30);
+      }
+    }
+
+    function update() {
+      const m = getModel();
+      if (simTime > m.flightTime) simTime = m.flightTime;
+      updateText(m);
+      drawScene(m);
+    }
+
+    function animate(timestamp) {
+      if (!animating) return;
+
+      if (lastTimestamp == null) {
+        lastTimestamp = timestamp;
+      }
+
+      const dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      const m = getModel();
+      simTime += dt;
+
+      if (simTime >= m.flightTime) {
+        simTime = m.flightTime;
+        animating = false;
+      }
+
+      update();
+      requestAnimationFrame(animate);
+    }
+
+    playBtn.addEventListener("click", () => {
+      const m = getModel();
+      if (simTime >= m.flightTime) {
+        simTime = 0;
+      }
+      if (!animating) {
+        animating = true;
+        lastTimestamp = null;
+        requestAnimationFrame(animate);
+      }
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      animating = false;
+      lastTimestamp = null;
+    });
+
+    resetBtn.addEventListener("click", () => {
+      animating = false;
+      simTime = 0;
+      lastTimestamp = null;
+      update();
+    });
+
+    planetSelect.addEventListener("change", syncPlanetControl);
+
+    gravitySlider.addEventListener("input", () => {
+      planetSelect.value = "custom";
+      update();
+    });
+
+    [speedSlider, angleSlider, heightSlider].forEach(slider => {
+      slider.addEventListener("input", update);
+    });
+
+    update();
+  </script>
+</body>
+</html>

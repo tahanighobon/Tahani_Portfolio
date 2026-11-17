@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wind Turbine Experiment</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --purple: #7c3aed;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 410px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      font-size: 15px;
+    }
+
+    .slider-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .formula-box, .scene-wrap, .chart-wrap, .notes-wrap {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    #turbineCanvas {
+      height: 420px;
+    }
+
+    #powerCanvas {
+      height: 260px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 14px;
+      height: 3px;
+      margin-right: 8px;
+      vertical-align: middle;
+      border-radius: 999px;
+    }
+
+    .available::before { background: #dc2626; }
+    .output::before { background: #2563eb; }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      #turbineCanvas {
+        height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Wind Turbine Experiment</h1>
+      <p>
+        Explore how wind speed, blade radius, air density, and turbine efficiency affect wind power and electrical output.
+        Watch the rotor spin faster as conditions change and compare available wind power with the usable turbine output.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="locationSelect">Air condition preset</label>
+          <select id="locationSelect">
+            <option value="1.225">Sea level air (1.225 kg/m³)</option>
+            <option value="1.15">Mild altitude air (1.15 kg/m³)</option>
+            <option value="1.00">High altitude air (1.00 kg/m³)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="slider-box">
+          <label for="windSlider">
+            Wind speed
+            <span class="value" id="windValue">8.0 m/s</span>
+          </label>
+          <input type="range" id="windSlider" min="0" max="25" step="0.1" value="8.0" />
+        </div>
+
+        <div class="slider-box">
+          <label for="radiusSlider">
+            Blade radius
+            <span class="value" id="radiusValue">20.0 m</span>
+          </label>
+          <input type="range" id="radiusSlider" min="2" max="50" step="0.1" value="20.0" />
+        </div>
+
+        <div class="slider-box">
+          <label for="densitySlider">
+            Air density
+            <span class="value" id="densityValue">1.225 kg/m³</span>
+          </label>
+          <input type="range" id="densitySlider" min="0.8" max="1.4" step="0.001" value="1.225" />
+        </div>
+
+        <div class="slider-box">
+          <label for="cpSlider">
+            Power coefficient C<sub>p</sub>
+            <span class="value" id="cpValue">0.40</span>
+          </label>
+          <input type="range" id="cpSlider" min="0.1" max="0.59" step="0.01" value="0.40" />
+        </div>
+
+        <div class="slider-box">
+          <label for="generatorSlider">
+            Generator efficiency
+            <span class="value" id="generatorValue">90%</span>
+          </label>
+          <input type="range" id="generatorSlider" min="50" max="100" step="1" value="90" />
+        </div>
+
+        <div class="slider-box">
+          <label for="cutInSlider">
+            Cut-in speed
+            <span class="value" id="cutInValue">3.0 m/s</span>
+          </label>
+          <input type="range" id="cutInSlider" min="1" max="8" step="0.1" value="3.0" />
+        </div>
+
+        <div class="slider-box">
+          <label for="cutOutSlider">
+            Cut-out speed
+            <span class="value" id="cutOutValue">20.0 m/s</span>
+          </label>
+          <input type="range" id="cutOutSlider" min="10" max="30" step="0.1" value="20.0" />
+        </div>
+
+        <div class="formula-box">
+          <h3>Key equations</h3>
+          <div class="formula">A = πr²</div><br>
+          <div class="formula">P<sub>wind</sub> = ½ρAv³</div><br>
+          <div class="formula">P<sub>turbine</sub> = C<sub>p</sub> · ½ρAv³</div><br>
+          <div class="formula">P<sub>electric</sub> = η · P<sub>turbine</sub></div>
+
+          <div class="status" id="statusText">
+            Wind power depends very strongly on wind speed because the power increases with the cube of wind speed.
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Swept area</small>
+            <strong id="areaOut">1256.64 m²</strong>
+          </div>
+          <div class="stat">
+            <small>Available wind power</small>
+            <strong id="windPowerOut">394.08 kW</strong>
+          </div>
+          <div class="stat">
+            <small>Turbine mechanical power</small>
+            <strong id="mechPowerOut">157.63 kW</strong>
+          </div>
+          <div class="stat">
+            <small>Electrical output</small>
+            <strong id="elecPowerOut">141.87 kW</strong>
+          </div>
+          <div class="stat">
+            <small>Rotor diameter</small>
+            <strong id="diameterOut">40.00 m</strong>
+          </div>
+          <div class="stat">
+            <small>Operating state</small>
+            <strong id="stateOut">Generating</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="scene-wrap">
+          <h2>Wind Turbine Animation</h2>
+          <canvas id="turbineCanvas" width="920" height="420"></canvas>
+        </div>
+
+        <div class="chart-wrap">
+          <h2>Power vs Wind Speed</h2>
+          <canvas id="powerCanvas" width="920" height="260"></canvas>
+          <div class="legend">
+            <span class="available">Available wind power</span>
+            <span class="output">Electrical output</span>
+          </div>
+        </div>
+
+        <div class="notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>When wind speed doubles, power does not just double. It increases much more because of the cubic relationship.</li>
+            <li>Larger blade radius means a larger swept area, so the turbine can capture more wind energy.</li>
+            <li>The power coefficient shows that only part of the wind power can be captured by the rotor.</li>
+            <li>If wind speed is below cut-in or above cut-out, the turbine does not generate power.</li>
+          </ul>
+          <p>
+            A strong classroom activity is to keep all variables fixed and change only wind speed, then ask students why small speed changes produce such large power changes.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding wind turbine energy conversion.
+    </div>
+  </div>
+
+  <script>
+    const locationSelect = document.getElementById("locationSelect");
+    const windSlider = document.getElementById("windSlider");
+    const radiusSlider = document.getElementById("radiusSlider");
+    const densitySlider = document.getElementById("densitySlider");
+    const cpSlider = document.getElementById("cpSlider");
+    const generatorSlider = document.getElementById("generatorSlider");
+    const cutInSlider = document.getElementById("cutInSlider");
+    const cutOutSlider = document.getElementById("cutOutSlider");
+
+    const windValue = document.getElementById("windValue");
+    const radiusValue = document.getElementById("radiusValue");
+    const densityValue = document.getElementById("densityValue");
+    const cpValue = document.getElementById("cpValue");
+    const generatorValue = document.getElementById("generatorValue");
+    const cutInValue = document.getElementById("cutInValue");
+    const cutOutValue = document.getElementById("cutOutValue");
+
+    const areaOut = document.getElementById("areaOut");
+    const windPowerOut = document.getElementById("windPowerOut");
+    const mechPowerOut = document.getElementById("mechPowerOut");
+    const elecPowerOut = document.getElementById("elecPowerOut");
+    const diameterOut = document.getElementById("diameterOut");
+    const stateOut = document.getElementById("stateOut");
+    const statusText = document.getElementById("statusText");
+
+    const turbineCanvas = document.getElementById("turbineCanvas");
+    const turbineCtx = turbineCanvas.getContext("2d");
+
+    const powerCanvas = document.getElementById("powerCanvas");
+    const powerCtx = powerCanvas.getContext("2d");
+
+    let bladeAngle = 0;
+
+    function fmt(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function getModel() {
+      const wind = parseFloat(windSlider.value);
+      const radius = parseFloat(radiusSlider.value);
+      const density = parseFloat(densitySlider.value);
+      const cp = parseFloat(cpSlider.value);
+      const efficiency = parseFloat(generatorSlider.value) / 100;
+      const cutIn = parseFloat(cutInSlider.value);
+      const cutOut = parseFloat(cutOutSlider.value);
+
+      const area = Math.PI * radius * radius;
+      const windPower = 0.5 * density * area * Math.pow(wind, 3);
+
+      let mechPower = 0;
+      let elecPower = 0;
+      let state = "Stopped";
+
+      if (wind >= cutIn && wind <= cutOut) {
+        mechPower = cp * windPower;
+        elecPower = efficiency * mechPower;
+        state = "Generating";
+      } else if (wind < cutIn) {
+        state = "Below cut-in";
+      } else {
+        state = "Above cut-out";
+      }
+
+      return {
+        wind,
+        radius,
+        density,
+        cp,
+        efficiency,
+        cutIn,
+        cutOut,
+        area,
+        windPower,
+        mechPower,
+        elecPower,
+        diameter: radius * 2,
+        state
+      };
+    }
+
+    function formatPower(watts) {
+      if (watts >= 1e6) return `${fmt(watts / 1e6)} MW`;
+      if (watts >= 1e3) return `${fmt(watts / 1e3)} kW`;
+      return `${fmt(watts)} W`;
+    }
+
+    function syncPreset() {
+      if (locationSelect.value !== "custom") {
+        densitySlider.value = locationSelect.value;
+      }
+      updateAll();
+    }
+
+    function updateText(m) {
+      windValue.textContent = `${m.wind.toFixed(1)} m/s`;
+      radiusValue.textContent = `${m.radius.toFixed(1)} m`;
+      densityValue.textContent = `${m.density.toFixed(3)} kg/m³`;
+      cpValue.textContent = `${m.cp.toFixed(2)}`;
+      generatorValue.textContent = `${Math.round(m.efficiency * 100)}%`;
+      cutInValue.textContent = `${m.cutIn.toFixed(1)} m/s`;
+      cutOutValue.textContent = `${m.cutOut.toFixed(1)} m/s`;
+
+      areaOut.textContent = `${fmt(m.area)} m²`;
+      windPowerOut.textContent = formatPower(m.windPower);
+      mechPowerOut.textContent = formatPower(m.mechPower);
+      elecPowerOut.textContent = formatPower(m.elecPower);
+      diameterOut.textContent = `${fmt(m.diameter)} m`;
+      stateOut.textContent = m.state;
+
+      if (m.wind < m.cutIn) {
+        statusText.textContent = "The wind speed is too low, so the turbine stays below cut-in speed and does not generate electricity.";
+      } else if (m.wind > m.cutOut) {
+        statusText.textContent = "The wind speed is above the cut-out limit, so the turbine shuts down for safety.";
+      } else if (m.cp > 0.5) {
+        statusText.textContent = "This is a very efficient turbine setting. Remember that real turbines cannot capture all of the wind power.";
+      } else {
+        statusText.textContent = "Wind power rises with the cube of wind speed, so even a small increase in wind speed can greatly increase turbine output.";
+      }
+    }
+
+    function drawTurbine(m) {
+      const ctx = turbineCtx;
+      const w = turbineCanvas.width;
+      const h = turbineCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, "#dbeafe");
+      sky.addColorStop(1, "#ffffff");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = "#dcfce7";
+      ctx.fillRect(0, h - 90, w, 90);
+
+      // clouds
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      drawCloud(ctx, 120, 80, 36);
+      drawCloud(ctx, 300, 60, 28);
+      drawCloud(ctx, 760, 90, 32);
+
+      // wind lines
+      ctx.strokeStyle = "rgba(37,99,235,0.35)";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 7; i++) {
+        const y = 70 + i * 36;
+        const length = 110 + i * 18;
+        ctx.beginPath();
+        ctx.moveTo(30, y);
+        ctx.quadraticCurveTo(80, y - 8, length, y);
+        ctx.stroke();
+      }
+
+      // tower
+      const towerX = 650;
+      const towerBaseY = h - 90;
+      const towerTopY = 140;
+      ctx.fillStyle = "#d1d5db";
+      ctx.beginPath();
+      ctx.moveTo(towerX - 28, towerBaseY);
+      ctx.lineTo(towerX + 28, towerBaseY);
+      ctx.lineTo(towerX + 12, towerTopY);
+      ctx.lineTo(towerX - 12, towerTopY);
+      ctx.closePath();
+      ctx.fill();
+
+      // nacelle
+      ctx.fillStyle = "#9ca3af";
+      ctx.fillRect(towerX - 10, towerTopY - 10, 80, 22);
+
+      const hubX = towerX + 8;
+      const hubY = towerTopY + 1;
+
+      // blade rotation speed linked to wind
+      let speedFactor = 0;
+      if (m.state === "Generating") {
+        speedFactor = m.wind / 25;
+      }
+      bladeAngle += speedFactor * 0.12;
+
+      const bladeLengthPx = Math.min(110, m.radius * 2.4);
+
+      for (let i = 0; i < 3; i++) {
+        const angle = bladeAngle + i * (2 * Math.PI / 3);
+        const x2 = hubX + bladeLengthPx * Math.cos(angle);
+        const y2 = hubY + bladeLengthPx * Math.sin(angle);
+
+        ctx.strokeStyle = "#374151";
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(hubX, hubY);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(x2, y2, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "#374151";
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#4b5563";
+      ctx.beginPath();
+      ctx.arc(hubX, hubY, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // labels
+      ctx.fillStyle = "#111827";
+      ctx.font = "18px Arial";
+      ctx.fillText(`Wind speed: ${m.wind.toFixed(1)} m/s`, 24, 32);
+      ctx.fillText(`State: ${m.state}`, 24, 60);
+      ctx.fillText(`Electrical output: ${formatPower(m.elecPower)}`, 24, 88);
+
+      // small meter box
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, 22, h - 145, 260, 85, 12, true, true);
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "15px Arial";
+      ctx.fillText(`Swept area: ${fmt(m.area)} m²`, 38, h - 113);
+      ctx.fillText(`Cₚ: ${m.cp.toFixed(2)}`, 38, h - 88);
+      ctx.fillText(`Generator η: ${Math.round(m.efficiency * 100)}%`, 38, h - 63);
+    }
+
+    function drawCloud(ctx, x, y, r) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.arc(x + r * 0.9, y - 10, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(x + r * 1.8, y, r * 0.9, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function drawPowerChart(m) {
+      const ctx = powerCtx;
+      const w = powerCanvas.width;
+      const h = powerCanvas.height;
+      const padL = 55;
+      const padR = 18;
+      const padT = 20;
+      const padB = 40;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const xMax = 25;
+      let maxP = 0;
+      for (let v = 0; v <= xMax; v += 0.2) {
+        const available = 0.5 * m.density * m.area * Math.pow(v, 3);
+        maxP = Math.max(maxP, available);
+      }
+      const yMax = maxP * 1.05;
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const x = padL + (plotW / 10) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padT);
+        ctx.lineTo(x, h - padB);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 5; i++) {
+        const y = padT + (plotH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(w - padR, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padL, padT);
+      ctx.lineTo(padL, h - padB);
+      ctx.lineTo(w - padR, h - padB);
+      ctx.stroke();
+
+      function mapX(v) {
+        return padL + (v / xMax) * plotW;
+      }
+
+      function mapY(p) {
+        return h - padB - (p / yMax) * plotH;
+      }
+
+      // available wind power
+      ctx.strokeStyle = "#dc2626";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let v = 0; v <= xMax; v += 0.1) {
+        const p = 0.5 * m.density * m.area * Math.pow(v, 3);
+        const x = mapX(v);
+        const y = mapY(p);
+        if (v === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // electrical output
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      let started = false;
+      for (let v = 0; v <= xMax; v += 0.1) {
+        let p = 0;
+        if (v >= m.cutIn && v <= m.cutOut) {
+          p = m.efficiency * m.cp * 0.5 * m.density * m.area * Math.pow(v, 3);
+        }
+        const x = mapX(v);
+        const y = mapY(p);
+        if (!started) {
+          ctx.moveTo(x, y);
+          started = true;
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+
+      // current operating point
+      const currentX = mapX(m.wind);
+      const currentY = mapY(m.elecPower);
+      ctx.fillStyle = "#2563eb";
+      ctx.beginPath();
+      ctx.arc(currentX, currentY, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // cut-in and cut-out markers
+      [m.cutIn, m.cutOut].forEach(v => {
+        const x = mapX(v);
+        ctx.strokeStyle = "#9ca3af";
+        ctx.setLineDash([6, 5]);
+        ctx.beginPath();
+        ctx.moveTo(x, padT);
+        ctx.lineTo(x, h - padB);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "15px Arial";
+      ctx.fillText("Wind speed (m/s)", w / 2 - 48, h - 10);
+
+      ctx.save();
+      ctx.translate(18, h / 2 + 30);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Power (W)", 0, 0);
+      ctx.restore();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "13px Arial";
+      for (let i = 0; i <= 10; i++) {
+        const val = (xMax / 10) * i;
+        const x = padL + (plotW / 10) * i;
+        ctx.fillText(val.toFixed(0), x - 5, h - padB + 18);
+      }
+      for (let i = 0; i <= 5; i++) {
+        const val = yMax - (yMax / 5) * i;
+        const y = padT + (plotH / 5) * i;
+        const label = val >= 1e6 ? `${(val / 1e6).toFixed(1)}M` : `${(val / 1e3).toFixed(0)}k`;
+        ctx.fillText(label, 5, y + 4);
+      }
+    }
+
+    function updateAll() {
+      const m = getModel();
+      updateText(m);
+      drawPowerChart(m);
+    }
+
+    function animate() {
+      const m = getModel();
+      drawTurbine(m);
+      requestAnimationFrame(animate);
+    }
+
+    locationSelect.addEventListener("change", syncPreset);
+
+    densitySlider.addEventListener("input", () => {
+      locationSelect.value = "custom";
+      updateAll();
+    });
+
+    [
+      windSlider,
+      radiusSlider,
+      cpSlider,
+      generatorSlider,
+      cutInSlider,
+      cutOutSlider
+    ].forEach(el => el.addEventListener("input", updateAll));
+
+    updateAll();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
