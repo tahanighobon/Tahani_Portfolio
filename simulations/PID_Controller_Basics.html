@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PID Controller Basics</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --good: #059669;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --purple: #7c3aed;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      font-size: 15px;
+    }
+
+    .slider-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .value {
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .secondary {
+      background: #ecfeff;
+      color: #0f766e;
+    }
+
+    .danger {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .formula-box, .chart-wrap, .mini-wrap, .notes-wrap {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .formula {
+      display: inline-block;
+      padding: 8px 10px;
+      background: #eef2ff;
+      border-radius: 10px;
+      color: #1e3a8a;
+      font-family: "Courier New", monospace;
+      margin: 6px 0;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    #responseCanvas {
+      height: 420px;
+    }
+
+    #controlCanvas {
+      height: 220px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 14px;
+      height: 3px;
+      margin-right: 8px;
+      vertical-align: middle;
+      border-radius: 999px;
+    }
+
+    .setpoint::before { background: var(--danger); }
+    .process::before { background: var(--accent); }
+    .control::before { background: var(--good); }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-row {
+        grid-template-columns: 1fr;
+      }
+
+      #responseCanvas {
+        height: 320px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>PID Controller Basics</h1>
+      <p>
+        Explore how proportional, integral, and derivative control affect system response.
+        Change the controller gains and see how the process variable tracks the setpoint, how quickly it settles,
+        and whether it overshoots or oscillates.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="modeSelect">Controller mode</label>
+          <select id="modeSelect">
+            <option value="P">P only</option>
+            <option value="PI">PI</option>
+            <option value="PD">PD</option>
+            <option value="PID" selected>PID</option>
+          </select>
+        </div>
+
+        <div class="slider-box">
+          <label for="setpointSlider">
+            Setpoint
+            <span class="value" id="setpointValue">1.00</span>
+          </label>
+          <input type="range" id="setpointSlider" min="0.2" max="2" step="0.01" value="1.00" />
+        </div>
+
+        <div class="slider-box">
+          <label for="kpSlider">
+            Proportional gain Kp
+            <span class="value" id="kpValue">2.50</span>
+          </label>
+          <input type="range" id="kpSlider" min="0" max="10" step="0.01" value="2.50" />
+        </div>
+
+        <div class="slider-box">
+          <label for="kiSlider">
+            Integral gain Ki
+            <span class="value" id="kiValue">0.80</span>
+          </label>
+          <input type="range" id="kiSlider" min="0" max="5" step="0.01" value="0.80" />
+        </div>
+
+        <div class="slider-box">
+          <label for="kdSlider">
+            Derivative gain Kd
+            <span class="value" id="kdValue">0.60</span>
+          </label>
+          <input type="range" id="kdSlider" min="0" max="5" step="0.01" value="0.60" />
+        </div>
+
+        <div class="slider-box">
+          <label for="tauSlider">
+            Plant time constant
+            <span class="value" id="tauValue">1.50 s</span>
+          </label>
+          <input type="range" id="tauSlider" min="0.2" max="6" step="0.01" value="1.50" />
+        </div>
+
+        <div class="slider-box">
+          <label for="disturbanceSlider">
+            Disturbance (starts at 8 s)
+            <span class="value" id="disturbanceValue">0.20</span>
+          </label>
+          <input type="range" id="disturbanceSlider" min="-1" max="1" step="0.01" value="0.20" />
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="runBtn">Run Simulation</button>
+          <button class="secondary" id="presetBtn">Load Stable Example</button>
+          <button class="danger" id="aggressiveBtn">Load Aggressive Example</button>
+        </div>
+
+        <div class="formula-box">
+          <h3>Core idea</h3>
+          <div class="formula">error = setpoint - process value</div><br>
+          <div class="formula">u = Kp·e + Ki∫e dt + Kd·de/dt</div><br>
+          <div class="formula">Plant: τ(dy/dt) + y = u + disturbance</div>
+
+          <div class="status" id="statusText">
+            Proportional control reacts to the current error, integral control removes long-term offset, and derivative control predicts the trend and damps motion.
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Overshoot</small>
+            <strong id="overshootOut">0.00%</strong>
+          </div>
+          <div class="stat">
+            <small>Settling time</small>
+            <strong id="settlingOut">--</strong>
+          </div>
+          <div class="stat">
+            <small>Final value</small>
+            <strong id="finalOut">0.00</strong>
+          </div>
+          <div class="stat">
+            <small>Steady-state error</small>
+            <strong id="sseOut">0.00</strong>
+          </div>
+          <div class="stat">
+            <small>Peak value</small>
+            <strong id="peakOut">0.00</strong>
+          </div>
+          <div class="stat">
+            <small>Controller type</small>
+            <strong id="modeOut">PID</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="chart-wrap">
+          <h2>System Response</h2>
+          <canvas id="responseCanvas" width="920" height="420"></canvas>
+          <div class="legend">
+            <span class="setpoint">Setpoint</span>
+            <span class="process">Process value</span>
+          </div>
+        </div>
+
+        <div class="mini-wrap">
+          <h2>Control Signal</h2>
+          <canvas id="controlCanvas" width="920" height="220"></canvas>
+          <div class="legend">
+            <span class="control">Controller output</span>
+          </div>
+        </div>
+
+        <div class="notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>P control responds immediately, but it may leave a steady-state error.</li>
+            <li>I control accumulates past error and helps remove offset.</li>
+            <li>D control reacts to how fast the error changes and can reduce overshoot.</li>
+            <li>Too much gain can make the system oscillate or become unstable.</li>
+          </ul>
+          <p>
+            A useful activity is to start with P only, then add I, then add D, and compare how the response changes each time.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding PID controller basics.
+    </div>
+  </div>
+
+  <script>
+    const modeSelect = document.getElementById("modeSelect");
+    const setpointSlider = document.getElementById("setpointSlider");
+    const kpSlider = document.getElementById("kpSlider");
+    const kiSlider = document.getElementById("kiSlider");
+    const kdSlider = document.getElementById("kdSlider");
+    const tauSlider = document.getElementById("tauSlider");
+    const disturbanceSlider = document.getElementById("disturbanceSlider");
+
+    const setpointValue = document.getElementById("setpointValue");
+    const kpValue = document.getElementById("kpValue");
+    const kiValue = document.getElementById("kiValue");
+    const kdValue = document.getElementById("kdValue");
+    const tauValue = document.getElementById("tauValue");
+    const disturbanceValue = document.getElementById("disturbanceValue");
+
+    const overshootOut = document.getElementById("overshootOut");
+    const settlingOut = document.getElementById("settlingOut");
+    const finalOut = document.getElementById("finalOut");
+    const sseOut = document.getElementById("sseOut");
+    const peakOut = document.getElementById("peakOut");
+    const modeOut = document.getElementById("modeOut");
+    const statusText = document.getElementById("statusText");
+
+    const responseCanvas = document.getElementById("responseCanvas");
+    const responseCtx = responseCanvas.getContext("2d");
+
+    const controlCanvas = document.getElementById("controlCanvas");
+    const controlCtx = controlCanvas.getContext("2d");
+
+    const runBtn = document.getElementById("runBtn");
+    const presetBtn = document.getElementById("presetBtn");
+    const aggressiveBtn = document.getElementById("aggressiveBtn");
+
+    function fmt(n) {
+      return Number(n).toFixed(2);
+    }
+
+    function getSettings() {
+      let mode = modeSelect.value;
+      let kp = parseFloat(kpSlider.value);
+      let ki = parseFloat(kiSlider.value);
+      let kd = parseFloat(kdSlider.value);
+
+      if (mode === "P") {
+        ki = 0;
+        kd = 0;
+      } else if (mode === "PI") {
+        kd = 0;
+      } else if (mode === "PD") {
+        ki = 0;
+      }
+
+      return {
+        mode,
+        setpoint: parseFloat(setpointSlider.value),
+        kp,
+        ki,
+        kd,
+        tau: parseFloat(tauSlider.value),
+        disturbance: parseFloat(disturbanceSlider.value)
+      };
+    }
+
+    function syncLabels() {
+      const s = getSettings();
+      setpointValue.textContent = s.setpoint.toFixed(2);
+      kpValue.textContent = s.kp.toFixed(2);
+      kiValue.textContent = parseFloat(kiSlider.value).toFixed(2);
+      kdValue.textContent = parseFloat(kdSlider.value).toFixed(2);
+      tauValue.textContent = `${s.tau.toFixed(2)} s`;
+      disturbanceValue.textContent = s.disturbance.toFixed(2);
+      modeOut.textContent = s.mode;
+    }
+
+    function simulate() {
+      const s = getSettings();
+      const dt = 0.02;
+      const tMax = 20;
+
+      const time = [];
+      const setpointArr = [];
+      const yArr = [];
+      const uArr = [];
+      const eArr = [];
+
+      let y = 0;
+      let u = 0;
+      let integral = 0;
+      let prevError = s.setpoint - y;
+
+      for (let t = 0; t <= tMax; t += dt) {
+        const disturbance = t >= 8 ? s.disturbance : 0;
+        const error = s.setpoint - y;
+
+        integral += error * dt;
+        const derivative = (error - prevError) / dt;
+
+        u = s.kp * error + s.ki * integral + s.kd * derivative;
+
+        // simple actuator saturation
+        u = Math.max(-5, Math.min(5, u));
+
+        // first-order plant
+        const dydt = (-y + u + disturbance) / s.tau;
+        y += dydt * dt;
+
+        time.push(t);
+        setpointArr.push(s.setpoint);
+        yArr.push(y);
+        uArr.push(u);
+        eArr.push(error);
+
+        prevError = error;
+      }
+
+      const peak = Math.max(...yArr);
+      const overshoot = Math.max(0, ((peak - s.setpoint) / s.setpoint) * 100);
+      const finalValue = yArr[yArr.length - 1];
+      const steadyStateError = s.setpoint - finalValue;
+
+      let settlingTime = null;
+      const tol = 0.02 * s.setpoint;
+
+      for (let i = 0; i < yArr.length; i++) {
+        let settled = true;
+        for (let j = i; j < yArr.length; j++) {
+          if (Math.abs(yArr[j] - s.setpoint) > tol) {
+            settled = false;
+            break;
+          }
+        }
+        if (settled) {
+          settlingTime = time[i];
+          break;
+        }
+      }
+
+      updateMetrics({
+        overshoot,
+        settlingTime,
+        finalValue,
+        steadyStateError,
+        peak,
+        mode: s.mode
+      });
+
+      updateStatus(s, overshoot, settlingTime, steadyStateError);
+      drawResponseChart(time, setpointArr, yArr);
+      drawControlChart(time, uArr);
+    }
+
+    function updateMetrics(m) {
+      overshootOut.textContent = `${fmt(m.overshoot)}%`;
+      settlingOut.textContent = m.settlingTime === null ? "--" : `${fmt(m.settlingTime)} s`;
+      finalOut.textContent = fmt(m.finalValue);
+      sseOut.textContent = fmt(m.steadyStateError);
+      peakOut.textContent = fmt(m.peak);
+      modeOut.textContent = m.mode;
+    }
+
+    function updateStatus(s, overshoot, settlingTime, sse) {
+      if (overshoot > 25) {
+        statusText.textContent = "The response is aggressive and shows large overshoot. Try reducing Kp or Ki, or increasing Kd for more damping.";
+      } else if (settlingTime === null) {
+        statusText.textContent = "The system does not settle within the simulated time. This may indicate oscillation, slow dynamics, or poor tuning.";
+      } else if (Math.abs(sse) > 0.03 && s.ki === 0) {
+        statusText.textContent = "There is noticeable steady-state error. Adding integral action can help remove the long-term offset.";
+      } else if (s.kd > 0 && overshoot < 10) {
+        statusText.textContent = "Derivative action is helping damp the response and reduce overshoot.";
+      } else {
+        statusText.textContent = "This response is reasonably balanced. The controller tracks the setpoint with manageable overshoot and settling.";
+      }
+    }
+
+    function drawAxes(ctx, canvas, xMax, yMin, yMax, xLabel, yLabel) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const padL = 55;
+      const padR = 20;
+      const padT = 20;
+      const padB = 45;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= 10; i++) {
+        const x = padL + (plotW / 10) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padT);
+        ctx.lineTo(x, h - padB);
+        ctx.stroke();
+      }
+
+      for (let i = 0; i <= 6; i++) {
+        const y = padT + (plotH / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(w - padR, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padL, padT);
+      ctx.lineTo(padL, h - padB);
+      ctx.lineTo(w - padR, h - padB);
+      ctx.stroke();
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "15px Arial";
+      ctx.fillText(xLabel, w / 2 - 18, h - 10);
+
+      ctx.save();
+      ctx.translate(16, h / 2 + 20);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "13px Arial";
+      for (let i = 0; i <= 10; i++) {
+        const val = (xMax / 10) * i;
+        const x = padL + (plotW / 10) * i;
+        ctx.fillText(val.toFixed(0), x - 5, h - padB + 18);
+      }
+
+      for (let i = 0; i <= 6; i++) {
+        const val = yMax - ((yMax - yMin) / 6) * i;
+        const y = padT + (plotH / 6) * i;
+        ctx.fillText(val.toFixed(2), 5, y + 4);
+      }
+
+      return {
+        padL, padR, padT, padB, plotW, plotH,
+        toCanvasX: x => padL + (x / xMax) * plotW,
+        toCanvasY: y => padT + ((yMax - y) / (yMax - yMin)) * plotH
+      };
+    }
+
+    function drawResponseChart(time, setpointArr, yArr) {
+      const xMax = time[time.length - 1];
+      const yMin = 0;
+      const yMax = Math.max(2.2, ...setpointArr, ...yArr) * 1.1;
+
+      const map = drawAxes(responseCtx, responseCanvas, xMax, yMin, yMax, "Time (s)", "Output");
+
+      responseCtx.strokeStyle = "#dc2626";
+      responseCtx.lineWidth = 2.5;
+      responseCtx.beginPath();
+      for (let i = 0; i < time.length; i++) {
+        const x = map.toCanvasX(time[i]);
+        const y = map.toCanvasY(setpointArr[i]);
+        if (i === 0) responseCtx.moveTo(x, y);
+        else responseCtx.lineTo(x, y);
+      }
+      responseCtx.stroke();
+
+      responseCtx.strokeStyle = "#2563eb";
+      responseCtx.lineWidth = 3;
+      responseCtx.beginPath();
+      for (let i = 0; i < time.length; i++) {
+        const x = map.toCanvasX(time[i]);
+        const y = map.toCanvasY(yArr[i]);
+        if (i === 0) responseCtx.moveTo(x, y);
+        else responseCtx.lineTo(x, y);
+      }
+      responseCtx.stroke();
+
+      // disturbance marker
+      const dx = map.toCanvasX(8);
+      responseCtx.strokeStyle = "#9ca3af";
+      responseCtx.lineWidth = 1.5;
+      responseCtx.setLineDash([6, 6]);
+      responseCtx.beginPath();
+      responseCtx.moveTo(dx, map.padT);
+      responseCtx.lineTo(dx, responseCanvas.height - map.padB);
+      responseCtx.stroke();
+      responseCtx.setLineDash([]);
+
+      responseCtx.fillStyle = "#6b7280";
+      responseCtx.font = "13px Arial";
+      responseCtx.fillText("Disturbance applied", dx + 8, map.padT + 16);
+    }
+
+    function drawControlChart(time, uArr) {
+      const xMax = time[time.length - 1];
+      const yMin = -5.5;
+      const yMax = 5.5;
+
+      const map = drawAxes(controlCtx, controlCanvas, xMax, yMin, yMax, "Time (s)", "Control");
+
+      controlCtx.strokeStyle = "#059669";
+      controlCtx.lineWidth = 3;
+      controlCtx.beginPath();
+      for (let i = 0; i < time.length; i++) {
+        const x = map.toCanvasX(time[i]);
+        const y = map.toCanvasY(uArr[i]);
+        if (i === 0) controlCtx.moveTo(x, y);
+        else controlCtx.lineTo(x, y);
+      }
+      controlCtx.stroke();
+    }
+
+    function loadStableExample() {
+      modeSelect.value = "PID";
+      setpointSlider.value = "1.00";
+      kpSlider.value = "2.50";
+      kiSlider.value = "0.80";
+      kdSlider.value = "0.60";
+      tauSlider.value = "1.50";
+      disturbanceSlider.value = "0.20";
+      syncLabels();
+      simulate();
+    }
+
+    function loadAggressiveExample() {
+      modeSelect.value = "PID";
+      setpointSlider.value = "1.00";
+      kpSlider.value = "6.50";
+      kiSlider.value = "2.50";
+      kdSlider.value = "0.10";
+      tauSlider.value = "1.00";
+      disturbanceSlider.value = "0.20";
+      syncLabels();
+      simulate();
+    }
+
+    [modeSelect, setpointSlider, kpSlider, kiSlider, kdSlider, tauSlider, disturbanceSlider].forEach(el => {
+      el.addEventListener("input", () => {
+        syncLabels();
+        simulate();
+      });
+    });
+
+    runBtn.addEventListener("click", simulate);
+    presetBtn.addEventListener("click", loadStableExample);
+    aggressiveBtn.addEventListener("click", loadAggressiveExample);
+
+    syncLabels();
+    simulate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linear Regression Simulator</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --point: #dc2626;
+      --fit: #059669;
+      --error: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1450px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input, button {
+      font: inherit;
+    }
+
+    input[type="range"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 72px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .value-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      text-align: center;
+      padding: 10px 6px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary:hover {
+      opacity: 0.92;
+      color: white;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      cursor: grab;
+    }
+
+    canvas.dragging {
+      cursor: grabbing;
+    }
+
+    #regressionCanvas {
+      height: 560px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .line-swatch, .dot-swatch {
+      display: inline-block;
+    }
+
+    .dot-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    .line-swatch {
+      width: 22px;
+      height: 0;
+      border-top: 3px solid;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Linear Regression</h1>
+      <p>
+        Generate noisy data from a line, drag the points, and observe how the best-fit line,
+        prediction errors, and MSE change.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Controls</h2>
+
+        <div class="group">
+          <label for="pointCount">Number of points</label>
+          <div class="range-row">
+            <input type="range" id="pointCount" min="3" max="30" value="12" />
+            <div class="value-box" id="pointCountValue">12</div>
+          </div>
+        </div>
+
+        <div class="group">
+          <label for="slopeSlider">Slope</label>
+          <div class="range-row">
+            <input type="range" id="slopeSlider" min="-5" max="5" step="0.1" value="1.5" />
+            <div class="value-box" id="slopeValue">1.5</div>
+          </div>
+        </div>
+
+        <div class="group">
+          <label for="interceptSlider">Intercept</label>
+          <div class="range-row">
+            <input type="range" id="interceptSlider" min="-20" max="20" step="0.5" value="8" />
+            <div class="value-box" id="interceptValue">8</div>
+          </div>
+        </div>
+
+        <div class="group">
+          <label for="noiseSlider">Noise level</label>
+          <div class="range-row">
+            <input type="range" id="noiseSlider" min="0" max="20" step="0.5" value="4" />
+            <div class="value-box" id="noiseValue">4</div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="btn-row">
+            <button class="primary" id="generateBtn">Generate Data</button>
+            <button id="addPointBtn">Add Random Point</button>
+            <button id="clearBtn">Clear Points</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>How to use</h3>
+          <ul style="margin:0; padding-left:20px; color:var(--muted); line-height:1.6;">
+            <li>Change slope, intercept, and noise, then generate data.</li>
+            <li>Drag points on the graph to manually change the dataset.</li>
+            <li>The green line is the best-fit regression line.</li>
+            <li>The orange vertical segments show prediction errors.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>Model status</h3>
+          <div class="status" id="statusText">
+            Generate data to see the scatter plot, best-fit line, and residual errors.
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="box">
+          <h2>Scatter Plot and Best-Fit Line</h2>
+          <canvas id="regressionCanvas" width="980" height="560"></canvas>
+
+          <div class="legend">
+            <div class="legend-item"><span class="dot-swatch" style="background:#dc2626;"></span> Data points</div>
+            <div class="legend-item"><span class="line-swatch" style="border-color:#059669;"></span> Best-fit line</div>
+            <div class="legend-item"><span class="line-swatch" style="border-color:#f59e0b;"></span> Prediction error</div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <small>Fitted slope</small>
+              <strong id="fittedSlopeOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Fitted intercept</small>
+              <strong id="fittedInterceptOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>MSE</small>
+              <strong id="mseOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Points</small>
+              <strong id="pointCountOut">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h2>Prediction Errors</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Point</th>
+                <th>x</th>
+                <th>Actual y</th>
+                <th>Predicted y</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody id="errorsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="box notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>The best-fit line minimizes the average squared prediction error.</li>
+            <li>More noise usually increases the MSE and makes the fitted line less exact.</li>
+            <li>Dragging one point far away can noticeably change the regression line.</li>
+            <li>Residuals show how far each point is from the model prediction.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Interactive browser-based simulation for understanding linear regression.
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("regressionCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const pointCountSlider = document.getElementById("pointCount");
+    const slopeSlider = document.getElementById("slopeSlider");
+    const interceptSlider = document.getElementById("interceptSlider");
+    const noiseSlider = document.getElementById("noiseSlider");
+
+    const pointCountValue = document.getElementById("pointCountValue");
+    const slopeValue = document.getElementById("slopeValue");
+    const interceptValue = document.getElementById("interceptValue");
+    const noiseValue = document.getElementById("noiseValue");
+
+    const generateBtn = document.getElementById("generateBtn");
+    const addPointBtn = document.getElementById("addPointBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    const fittedSlopeOut = document.getElementById("fittedSlopeOut");
+    const fittedInterceptOut = document.getElementById("fittedInterceptOut");
+    const mseOut = document.getElementById("mseOut");
+    const pointCountOut = document.getElementById("pointCountOut");
+    const errorsBody = document.getElementById("errorsBody");
+    const statusText = document.getElementById("statusText");
+
+    let points = [];
+    let draggingIndex = -1;
+
+    const plotPadding = 50;
+
+    function updateControlLabels() {
+      pointCountValue.textContent = pointCountSlider.value;
+      slopeValue.textContent = slopeSlider.value;
+      interceptValue.textContent = interceptSlider.value;
+      noiseValue.textContent = noiseSlider.value;
+    }
+
+    function randBetween(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function gaussianNoise(scale) {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) * scale;
+    }
+
+    function generateData() {
+      const n = Number(pointCountSlider.value);
+      const slope = Number(slopeSlider.value);
+      const intercept = Number(interceptSlider.value);
+      const noise = Number(noiseSlider.value);
+
+      points = [];
+      for (let i = 0; i < n; i++) {
+        const x = randBetween(0, 10);
+        const y = slope * x + intercept + gaussianNoise(noise);
+        points.push({ x, y });
+      }
+
+      draw();
+    }
+
+    function addRandomPoint() {
+      const slope = Number(slopeSlider.value);
+      const intercept = Number(interceptSlider.value);
+      const noise = Number(noiseSlider.value);
+      const x = randBetween(0, 10);
+      const y = slope * x + intercept + gaussianNoise(noise);
+      points.push({ x, y });
+      draw();
+    }
+
+    function clearPoints() {
+      points = [];
+      draw();
+    }
+
+    function getBounds() {
+      if (points.length === 0) {
+        return { minX: 0, maxX: 10, minY: 0, maxY: 10 };
+      }
+
+      const xs = points.map(p => p.x);
+      const ys = points.map(p => p.y);
+
+      let minX = Math.min(...xs);
+      let maxX = Math.max(...xs);
+      let minY = Math.min(...ys);
+      let maxY = Math.max(...ys);
+
+      if (minX === maxX) { minX -= 1; maxX += 1; }
+      if (minY === maxY) { minY -= 1; maxY += 1; }
+
+      const padX = (maxX - minX) * 0.15;
+      const padY = (maxY - minY) * 0.15;
+
+      return {
+        minX: minX - padX,
+        maxX: maxX + padX,
+        minY: minY - padY,
+        maxY: maxY + padY
+      };
+    }
+
+    function toCanvasCoords(x, y, bounds) {
+      const plotW = canvas.width - plotPadding * 2;
+      const plotH = canvas.height - plotPadding * 2;
+
+      const cx = plotPadding + ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * plotW;
+      const cy = canvas.height - plotPadding - ((y - bounds.minY) / (bounds.maxY - bounds.minY)) * plotH;
+
+      return { x: cx, y: cy };
+    }
+
+    function toDataCoords(cx, cy, bounds) {
+      const plotW = canvas.width - plotPadding * 2;
+      const plotH = canvas.height - plotPadding * 2;
+
+      const x = bounds.minX + ((cx - plotPadding) / plotW) * (bounds.maxX - bounds.minX);
+      const y = bounds.minY + ((canvas.height - plotPadding - cy) / plotH) * (bounds.maxY - bounds.minY);
+
+      return { x, y };
+    }
+
+    function fitLine(data) {
+      const n = data.length;
+      if (n < 2) return null;
+
+      let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+      data.forEach(p => {
+        sumX += p.x;
+        sumY += p.y;
+        sumXY += p.x * p.y;
+        sumX2 += p.x * p.x;
+      });
+
+      const denominator = n * sumX2 - sumX * sumX;
+      if (Math.abs(denominator) < 1e-12) {
+        return { slope: 0, intercept: sumY / n };
+      }
+
+      const slope = (n * sumXY - sumX * sumY) / denominator;
+      const intercept = (sumY - slope * sumX) / n;
+      return { slope, intercept };
+    }
+
+    function computeMSE(data, model) {
+      if (!model || data.length === 0) return 0;
+      const sum = data.reduce((acc, p) => {
+        const pred = model.slope * p.x + model.intercept;
+        return acc + (p.y - pred) ** 2;
+      }, 0);
+      return sum / data.length;
+    }
+
+    function drawAxes(bounds) {
+      const plotW = canvas.width - plotPadding * 2;
+      const plotH = canvas.height - plotPadding * 2;
+
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= 10; i++) {
+        const x = plotPadding + (plotW / 10) * i;
+        const y = plotPadding + (plotH / 10) * i;
+
+        ctx.beginPath();
+        ctx.moveTo(x, plotPadding);
+        ctx.lineTo(x, canvas.height - plotPadding);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(plotPadding, y);
+        ctx.lineTo(canvas.width - plotPadding, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(plotPadding, plotPadding);
+      ctx.lineTo(plotPadding, canvas.height - plotPadding);
+      ctx.lineTo(canvas.width - plotPadding, canvas.height - plotPadding);
+      ctx.stroke();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "13px Arial";
+
+      for (let i = 0; i <= 10; i++) {
+        const xVal = bounds.minX + ((bounds.maxX - bounds.minX) / 10) * i;
+        const yVal = bounds.minY + ((bounds.maxY - bounds.minY) / 10) * (10 - i);
+
+        const x = plotPadding + (plotW / 10) * i;
+        const y = plotPadding + (plotH / 10) * i;
+
+        ctx.fillText(xVal.toFixed(1), x - 12, canvas.height - plotPadding + 20);
+        ctx.fillText(yVal.toFixed(1), 4, y + 4);
+      }
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText("x", canvas.width / 2, canvas.height - 10);
+
+      ctx.save();
+      ctx.translate(18, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("y", 0, 0);
+      ctx.restore();
+    }
+
+    function drawBestFitLine(bounds, model) {
+      if (!model) return;
+
+      const x1 = bounds.minX;
+      const y1 = model.slope * x1 + model.intercept;
+      const x2 = bounds.maxX;
+      const y2 = model.slope * x2 + model.intercept;
+
+      const p1 = toCanvasCoords(x1, y1, bounds);
+      const p2 = toCanvasCoords(x2, y2, bounds);
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.strokeStyle = "#059669";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    function drawResiduals(bounds, model) {
+      if (!model) return;
+
+      points.forEach(p => {
+        const predY = model.slope * p.x + model.intercept;
+        const actual = toCanvasCoords(p.x, p.y, bounds);
+        const predicted = toCanvasCoords(p.x, predY, bounds);
+
+        ctx.beginPath();
+        ctx.moveTo(actual.x, actual.y);
+        ctx.lineTo(predicted.x, predicted.y);
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    }
+
+    function drawPoints(bounds) {
+      points.forEach((p, i) => {
+        const cp = toCanvasCoords(p.x, p.y, bounds);
+        ctx.beginPath();
+        ctx.arc(cp.x, cp.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = "#dc2626";
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+
+        ctx.fillStyle = "#111827";
+        ctx.font = "12px Arial";
+        ctx.fillText(`P${i + 1}`, cp.x + 9, cp.y - 9);
+      });
+    }
+
+    function updateTable(model) {
+      errorsBody.innerHTML = "";
+
+      if (!model || points.length === 0) return;
+
+      points.forEach((p, i) => {
+        const pred = model.slope * p.x + model.intercept;
+        const error = p.y - pred;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>P${i + 1}</td>
+          <td>${p.x.toFixed(2)}</td>
+          <td>${p.y.toFixed(2)}</td>
+          <td>${pred.toFixed(2)}</td>
+          <td>${error.toFixed(2)}</td>
+        `;
+        errorsBody.appendChild(tr);
+      });
+    }
+
+    function updateOutputs(model, mse) {
+      pointCountOut.textContent = points.length;
+
+      if (!model || points.length < 2) {
+        fittedSlopeOut.textContent = "-";
+        fittedInterceptOut.textContent = "-";
+        mseOut.textContent = "-";
+        statusText.textContent = "Add at least two points to fit a regression line.";
+        updateTable(null);
+        return;
+      }
+
+      fittedSlopeOut.textContent = model.slope.toFixed(3);
+      fittedInterceptOut.textContent = model.intercept.toFixed(3);
+      mseOut.textContent = mse.toFixed(3);
+      statusText.textContent = "The green line is the least-squares best-fit line. Orange segments show prediction error for each point.";
+      updateTable(model);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const bounds = getBounds();
+      const model = fitLine(points);
+      const mse = computeMSE(points, model);
+
+      drawAxes(bounds);
+      drawResiduals(bounds, model);
+      drawBestFitLine(bounds, model);
+      drawPoints(bounds);
+      updateOutputs(model, mse);
+    }
+
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (evt.clientX - rect.left) * scaleX,
+        y: (evt.clientY - rect.top) * scaleY
+      };
+    }
+
+    function findPointAtCanvasPos(mx, my) {
+      const bounds = getBounds();
+      for (let i = points.length - 1; i >= 0; i--) {
+        const cp = toCanvasCoords(points[i].x, points[i].y, bounds);
+        const d = Math.hypot(mx - cp.x, my - cp.y);
+        if (d <= 10) return i;
+      }
+      return -1;
+    }
+
+    canvas.addEventListener("mousedown", (e) => {
+      const pos = getMousePos(e);
+      draggingIndex = findPointAtCanvasPos(pos.x, pos.y);
+      if (draggingIndex !== -1) {
+        canvas.classList.add("dragging");
+      }
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (draggingIndex === -1) return;
+
+      const bounds = getBounds();
+      const pos = getMousePos(e);
+
+      const clampedX = Math.max(plotPadding, Math.min(canvas.width - plotPadding, pos.x));
+      const clampedY = Math.max(plotPadding, Math.min(canvas.height - plotPadding, pos.y));
+
+      const dataPos = toDataCoords(clampedX, clampedY, bounds);
+      points[draggingIndex].x = dataPos.x;
+      points[draggingIndex].y = dataPos.y;
+      draw();
+    });
+
+    window.addEventListener("mouseup", () => {
+      draggingIndex = -1;
+      canvas.classList.remove("dragging");
+    });
+
+    pointCountSlider.addEventListener("input", updateControlLabels);
+    slopeSlider.addEventListener("input", updateControlLabels);
+    interceptSlider.addEventListener("input", updateControlLabels);
+    noiseSlider.addEventListener("input", updateControlLabels);
+
+    generateBtn.addEventListener("click", generateData);
+    addPointBtn.addEventListener("click", addRandomPoint);
+    clearBtn.addEventListener("click", clearPoints);
+
+    updateControlLabels();
+    generateData();
+  </script>
+</body>
+</html>

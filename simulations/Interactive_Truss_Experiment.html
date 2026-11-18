@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Truss Experiment</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --tension: #dc2626;
+      --compression: #2563eb;
+      --neutral: #6b7280;
+      --good: #059669;
+      --warn: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #e8f0ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.04);
+    }
+
+    .controls .group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: bold;
+      margin-left: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      background: var(--accent);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button.secondary {
+      background: #374151;
+    }
+
+    button.light {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .canvas-wrap {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.04);
+    }
+
+    svg {
+      width: 100%;
+      height: 520px;
+      display: block;
+      background: linear-gradient(to bottom, #ffffff, #f8fbff);
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .notes {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .note-box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .note-box p, .note-box li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .formula {
+      font-family: "Courier New", monospace;
+      background: #eef2ff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      display: inline-block;
+      margin: 6px 0;
+      color: #1e3a8a;
+    }
+
+    .quiz {
+      margin-top: 20px;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .quiz p {
+      margin: 8px 0;
+    }
+
+    .answer {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      display: none;
+    }
+
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .container { padding: 16px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .notes {
+        grid-template-columns: 1fr;
+      }
+
+      svg {
+        height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Interactive Truss Experiment</h1>
+      <p>
+        This simulation helps students understand how a simple triangular truss carries load.
+        Change the span, height, and load, then observe support reactions, member forces,
+        and which members are in tension or compression.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel controls">
+        <h2>Experiment Controls</h2>
+
+        <div class="group">
+          <label for="loadRange">
+            Applied Load at Top Joint
+            <span class="value" id="loadValue">20 kN</span>
+          </label>
+          <input type="range" id="loadRange" min="5" max="100" value="20" step="1" />
+        </div>
+
+        <div class="group">
+          <label for="spanRange">
+            Span Length
+            <span class="value" id="spanValue">8 m</span>
+          </label>
+          <input type="range" id="spanRange" min="4" max="16" value="8" step="0.5" />
+        </div>
+
+        <div class="group">
+          <label for="heightRange">
+            Truss Height
+            <span class="value" id="heightValue">3 m</span>
+          </label>
+          <input type="range" id="heightRange" min="1" max="8" value="3" step="0.5" />
+        </div>
+
+        <div class="btn-row">
+          <button onclick="randomizeExperiment()">Random Example</button>
+          <button class="secondary" onclick="resetExperiment()">Reset</button>
+          <button class="light" onclick="toggleLabels()">Show/Hide Labels</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Left Reaction Ay</small>
+            <strong id="leftReaction">10.00 kN</strong>
+          </div>
+          <div class="stat">
+            <small>Right Reaction Cy</small>
+            <strong id="rightReaction">10.00 kN</strong>
+          </div>
+          <div class="stat">
+            <small>Member AB</small>
+            <strong id="forceAB">13.33 kN</strong>
+          </div>
+          <div class="stat">
+            <small>Member BC</small>
+            <strong id="forceBC">13.33 kN</strong>
+          </div>
+          <div class="stat">
+            <small>Member AC</small>
+            <strong id="forceAC">6.67 kN</strong>
+          </div>
+          <div class="stat">
+            <small>Truss Angle</small>
+            <strong id="angleValue">36.87°</strong>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><i class="swatch" style="background: var(--compression)"></i> Compression</span>
+          <span><i class="swatch" style="background: var(--tension)"></i> Tension</span>
+          <span><i class="swatch" style="background: var(--neutral)"></i> Supports / structure</span>
+        </div>
+
+        <div class="quiz">
+          <h3>Quick Question</h3>
+          <p id="quizQuestion">If the load increases, which member force increases the most?</p>
+          <button class="light" onclick="showAnswer()">Reveal Answer</button>
+          <div class="answer" id="quizAnswer">
+            In this symmetric triangular truss, all member forces increase when the load increases.
+            The inclined members AB and BC usually carry larger force magnitudes than the bottom member AC.
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <h2>Live Truss Model</h2>
+        <svg id="trussSvg" viewBox="0 0 900 520" aria-label="Interactive truss diagram">
+          <defs>
+            <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"></path>
+            </marker>
+            <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"></path>
+            </marker>
+            <marker id="arrowDark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#111827"></path>
+            </marker>
+          </defs>
+
+          <!-- ground -->
+          <line x1="60" y1="430" x2="840" y2="430" stroke="#9ca3af" stroke-width="3" stroke-dasharray="8 6"></line>
+
+          <!-- members -->
+          <line id="memberAB" x1="0" y1="0" x2="0" y2="0" stroke="#2563eb" stroke-width="10" stroke-linecap="round"></line>
+          <line id="memberBC" x1="0" y1="0" x2="0" y2="0" stroke="#2563eb" stroke-width="10" stroke-linecap="round"></line>
+          <line id="memberAC" x1="0" y1="0" x2="0" y2="0" stroke="#dc2626" stroke-width="10" stroke-linecap="round"></line>
+
+          <!-- supports -->
+          <polygon id="leftSupport" points="" fill="#6b7280"></polygon>
+          <polygon id="rightSupport" points="" fill="#6b7280"></polygon>
+          <circle id="roller1" cx="0" cy="0" r="8" fill="#9ca3af"></circle>
+          <circle id="roller2" cx="0" cy="0" r="8" fill="#9ca3af"></circle>
+
+          <!-- joints -->
+          <circle id="jointA" cx="0" cy="0" r="9" fill="#111827"></circle>
+          <circle id="jointB" cx="0" cy="0" r="9" fill="#111827"></circle>
+          <circle id="jointC" cx="0" cy="0" r="9" fill="#111827"></circle>
+
+          <!-- applied load -->
+          <line id="loadArrow" x1="0" y1="0" x2="0" y2="0" stroke="#111827" stroke-width="5" marker-end="url(#arrowDark)"></line>
+          <text id="loadText" x="0" y="0" font-size="18" text-anchor="middle" fill="#111827" font-weight="bold">20 kN</text>
+
+          <!-- reactions -->
+          <line id="reactionLeftArrow" x1="0" y1="0" x2="0" y2="0" stroke="#059669" stroke-width="5" marker-end="url(#arrowDark)"></line>
+          <line id="reactionRightArrow" x1="0" y1="0" x2="0" y2="0" stroke="#059669" stroke-width="5" marker-end="url(#arrowDark)"></line>
+          <text id="reactionLeftText" x="0" y="0" font-size="16" text-anchor="middle" fill="#065f46" font-weight="bold"></text>
+          <text id="reactionRightText" x="0" y="0" font-size="16" text-anchor="middle" fill="#065f46" font-weight="bold"></text>
+
+          <!-- labels -->
+          <text class="node-label" id="labelA" x="0" y="0" font-size="18" font-weight="bold" fill="#111827">A</text>
+          <text class="node-label" id="labelB" x="0" y="0" font-size="18" font-weight="bold" fill="#111827">B</text>
+          <text class="node-label" id="labelC" x="0" y="0" font-size="18" font-weight="bold" fill="#111827">C</text>
+
+          <text class="force-label" id="labelAB" x="0" y="0" font-size="16" text-anchor="middle" fill="#111827"></text>
+          <text class="force-label" id="labelBC" x="0" y="0" font-size="16" text-anchor="middle" fill="#111827"></text>
+          <text class="force-label" id="labelAC" x="0" y="0" font-size="16" text-anchor="middle" fill="#111827"></text>
+        </svg>
+
+        <div class="notes">
+          <div class="note-box">
+            <h3>What students should notice</h3>
+            <ul>
+              <li>The top load is shared by the two supports.</li>
+              <li>The two inclined members carry compression.</li>
+              <li>The bottom member carries tension.</li>
+              <li>Changing the truss height changes the internal forces.</li>
+            </ul>
+          </div>
+
+          <div class="note-box">
+            <h3>Key relationships</h3>
+            <div class="formula">Ay = Cy = P / 2</div><br>
+            <div class="formula">F_AB = F_BC = P / (2 sinθ)</div><br>
+            <div class="formula">F_AC = P / (2 tanθ)</div>
+            <p>
+              Where θ is the angle of the inclined member with the horizontal.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Built for teaching basic truss behavior using a simple triangular truss model.
+    </div>
+  </div>
+
+  <script>
+    const loadRange = document.getElementById("loadRange");
+    const spanRange = document.getElementById("spanRange");
+    const heightRange = document.getElementById("heightRange");
+
+    const loadValue = document.getElementById("loadValue");
+    const spanValue = document.getElementById("spanValue");
+    const heightValue = document.getElementById("heightValue");
+
+    const leftReaction = document.getElementById("leftReaction");
+    const rightReaction = document.getElementById("rightReaction");
+    const forceAB = document.getElementById("forceAB");
+    const forceBC = document.getElementById("forceBC");
+    const forceAC = document.getElementById("forceAC");
+    const angleValue = document.getElementById("angleValue");
+
+    let labelsVisible = true;
+
+    function formatNumber(value) {
+      return Number(value).toFixed(2);
+    }
+
+    function updateExperiment() {
+      const P = parseFloat(loadRange.value);
+      const L = parseFloat(spanRange.value);
+      const H = parseFloat(heightRange.value);
+
+      loadValue.textContent = `${P} kN`;
+      spanValue.textContent = `${L} m`;
+      heightValue.textContent = `${H} m`;
+
+      const theta = Math.atan(H / (L / 2));
+      const thetaDeg = theta * 180 / Math.PI;
+
+      const Ay = P / 2;
+      const Cy = P / 2;
+      const FAB = P / (2 * Math.sin(theta));
+      const FBC = FAB;
+      const FAC = P / (2 * Math.tan(theta));
+
+      leftReaction.textContent = `${formatNumber(Ay)} kN`;
+      rightReaction.textContent = `${formatNumber(Cy)} kN`;
+      forceAB.textContent = `${formatNumber(FAB)} kN C`;
+      forceBC.textContent = `${formatNumber(FBC)} kN C`;
+      forceAC.textContent = `${formatNumber(FAC)} kN T`;
+      angleValue.textContent = `${formatNumber(thetaDeg)}°`;
+
+      drawTruss(P, L, H, Ay, Cy, FAB, FBC, FAC, thetaDeg);
+      updateQuiz(P, H, L);
+    }
+
+    function drawTruss(P, L, H, Ay, Cy, FAB, FBC, FAC, thetaDeg) {
+      const svgWidth = 900;
+      const baseY = 390;
+      const centerX = svgWidth / 2;
+
+      const maxSpan = 16;
+      const maxHeight = 8;
+
+      const visualSpan = 520 * (L / maxSpan) + 180;
+      const visualHeight = 230 * (H / maxHeight) + 50;
+
+      const A = { x: centerX - visualSpan / 2, y: baseY };
+      const C = { x: centerX + visualSpan / 2, y: baseY };
+      const B = { x: centerX, y: baseY - visualHeight };
+
+      setLine("memberAB", A, B, getStrokeWidth(FAB), getColor("compression"));
+      setLine("memberBC", B, C, getStrokeWidth(FBC), getColor("compression"));
+      setLine("memberAC", A, C, getStrokeWidth(FAC), getColor("tension"));
+
+      setCircle("jointA", A.x, A.y);
+      setCircle("jointB", B.x, B.y);
+      setCircle("jointC", C.x, C.y);
+
+      drawSupports(A, C);
+      drawLoad(B, P);
+      drawReactions(A, C, Ay, Cy);
+
+      setText("labelA", A.x - 18, A.y - 14, "A");
+      setText("labelB", B.x - 18, B.y - 14, "B");
+      setText("labelC", C.x + 10, C.y - 14, "C");
+
+      setText("labelAB", (A.x + B.x) / 2 - 20, (A.y + B.y) / 2 - 12, `${formatNumber(FAB)} kN C`);
+      setText("labelBC", (B.x + C.x) / 2 + 20, (B.y + C.y) / 2 - 12, `${formatNumber(FBC)} kN C`);
+      setText("labelAC", (A.x + C.x) / 2, A.y + 30, `${formatNumber(FAC)} kN T`);
+
+      document.getElementById("loadText").textContent = `${P} kN`;
+      document.getElementById("reactionLeftText").textContent = `${formatNumber(Ay)} kN`;
+      document.getElementById("reactionRightText").textContent = `${formatNumber(Cy)} kN`;
+
+      document.querySelectorAll(".node-label, .force-label").forEach(el => {
+        el.style.display = labelsVisible ? "block" : "none";
+      });
+    }
+
+    function getStrokeWidth(force) {
+      return Math.max(6, Math.min(18, 5 + force / 7));
+    }
+
+    function getColor(type) {
+      if (type === "compression") return "#2563eb";
+      if (type === "tension") return "#dc2626";
+      return "#6b7280";
+    }
+
+    function setLine(id, p1, p2, width, color) {
+      const el = document.getElementById(id);
+      el.setAttribute("x1", p1.x);
+      el.setAttribute("y1", p1.y);
+      el.setAttribute("x2", p2.x);
+      el.setAttribute("y2", p2.y);
+      el.setAttribute("stroke-width", width);
+      el.setAttribute("stroke", color);
+    }
+
+    function setCircle(id, x, y) {
+      const el = document.getElementById(id);
+      el.setAttribute("cx", x);
+      el.setAttribute("cy", y);
+    }
+
+    function setText(id, x, y, text) {
+      const el = document.getElementById(id);
+      el.setAttribute("x", x);
+      el.setAttribute("y", y);
+      el.textContent = text;
+    }
+
+    function drawSupports(A, C) {
+      const leftSupport = document.getElementById("leftSupport");
+      leftSupport.setAttribute("points", `${A.x - 18},${A.y + 24} ${A.x + 18},${A.y + 24} ${A.x},${A.y}`);
+
+      const rightSupport = document.getElementById("rightSupport");
+      rightSupport.setAttribute("points", `${C.x - 18},${C.y + 24} ${C.x + 18},${C.y + 24} ${C.x},${C.y}`);
+
+      document.getElementById("roller1").setAttribute("cx", C.x - 10);
+      document.getElementById("roller1").setAttribute("cy", C.y + 32);
+      document.getElementById("roller2").setAttribute("cx", C.x + 10);
+      document.getElementById("roller2").setAttribute("cy", C.y + 32);
+    }
+
+    function drawLoad(B, P) {
+      const arrowLength = 90 + P * 0.6;
+      const loadArrow = document.getElementById("loadArrow");
+      loadArrow.setAttribute("x1", B.x);
+      loadArrow.setAttribute("y1", B.y - arrowLength);
+      loadArrow.setAttribute("x2", B.x);
+      loadArrow.setAttribute("y2", B.y - 14);
+
+      setText("loadText", B.x, B.y - arrowLength - 12, `${P} kN`);
+    }
+
+    function drawReactions(A, C, Ay, Cy) {
+      const leftLen = 55 + Ay * 1.2;
+      const rightLen = 55 + Cy * 1.2;
+
+      const leftArrow = document.getElementById("reactionLeftArrow");
+      leftArrow.setAttribute("x1", A.x, A.y + 10);
+      leftArrow.setAttribute("y1", A.y + 10);
+      leftArrow.setAttribute("x2", A.x, A.y - leftLen);
+
+      const rightArrow = document.getElementById("reactionRightArrow");
+      rightArrow.setAttribute("x1", C.x, C.y + 10);
+      rightArrow.setAttribute("y1", C.y + 10);
+      rightArrow.setAttribute("x2", C.x, C.y - rightLen);
+
+      setText("reactionLeftText", A.x, A.y - leftLen - 10, `${formatNumber(Ay)} kN`);
+      setText("reactionRightText", C.x, C.y - rightLen - 10, `${formatNumber(Cy)} kN`);
+    }
+
+    function toggleLabels() {
+      labelsVisible = !labelsVisible;
+      updateExperiment();
+    }
+
+    function resetExperiment() {
+      loadRange.value = 20;
+      spanRange.value = 8;
+      heightRange.value = 3;
+      document.getElementById("quizAnswer").style.display = "none";
+      updateExperiment();
+    }
+
+    function randomizeExperiment() {
+      loadRange.value = Math.floor(Math.random() * 50) + 10;
+      spanRange.value = (Math.floor(Math.random() * 17) + 8) / 2;
+      heightRange.value = (Math.floor(Math.random() * 13) + 2) / 2;
+      document.getElementById("quizAnswer").style.display = "none";
+      updateExperiment();
+    }
+
+    function showAnswer() {
+      document.getElementById("quizAnswer").style.display = "block";
+    }
+
+    function updateQuiz(P, H, L) {
+      const question = document.getElementById("quizQuestion");
+
+      if (H < 2.5) {
+        question.textContent = "This truss is getting flatter. What happens to member forces when the height becomes smaller?";
+      } else if (H > 5) {
+        question.textContent = "This truss is taller now. Why do the inclined member forces decrease compared with a flatter truss?";
+      } else if (P > 50) {
+        question.textContent = "The load is high. Which members are still in compression, and which member stays in tension?";
+      } else {
+        question.textContent = "If the load increases, which member force increases the most?";
+      }
+
+      document.getElementById("quizAnswer").style.display = "none";
+    }
+
+    loadRange.addEventListener("input", updateExperiment);
+    spanRange.addEventListener("input", updateExperiment);
+    heightRange.addEventListener("input", updateExperiment);
+
+    updateExperiment();
+  </script>
+</body>
+</html>

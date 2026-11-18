@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive STEM Experiments</title>
+  <style>
+    :root {
+      --bg: #031224;
+      --panel: rgba(10, 23, 42, 0.72);
+      --line: rgba(255,255,255,0.12);
+      --text: #f4f8ff;
+      --muted: #b9cae3;
+      --chip: rgba(255,255,255,0.06);
+      --chip-active: linear-gradient(135deg, rgba(125,211,252,0.22), rgba(167,139,250,0.22));
+      --shadow: 0 24px 70px rgba(0,0,0,0.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(59,130,246,0.12), transparent 18%),
+        radial-gradient(circle at 80% 15%, rgba(168,85,247,0.12), transparent 16%),
+        radial-gradient(circle at 70% 85%, rgba(34,197,94,0.08), transparent 18%),
+        linear-gradient(180deg, #04101d 0%, #06172a 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(125,211,252,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(125,211,252,0.04) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at center, black 28%, transparent 90%);
+    }
+
+    .container {
+      width: min(1320px, calc(100% - 28px));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 20px 0 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand-mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(14,165,233,0.18));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+      font-size: 1.4rem;
+    }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-copy span {
+      display: block;
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 0.93rem;
+    }
+
+    .top-action {
+      text-decoration: none;
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      transition: .2s ease;
+    }
+
+    .top-action:hover { transform: translateY(-1px); background: rgba(255,255,255,0.08); }
+
+    .hero {
+      margin: 6px 0 22px;
+      border-radius: 30px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(8, 20, 38, 0.92), rgba(9, 25, 44, 0.88)),
+        linear-gradient(135deg, rgba(59,130,246,0.14), rgba(168,85,247,0.12));
+      box-shadow: var(--shadow);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      pointer-events: none;
+      filter: blur(8px);
+    }
+
+    .hero::before {
+      width: 260px;
+      height: 260px;
+      right: -90px;
+      top: -60px;
+      background: radial-gradient(circle, rgba(59,130,246,0.26), transparent 65%);
+    }
+
+    .hero::after {
+      width: 220px;
+      height: 220px;
+      left: -70px;
+      bottom: -80px;
+      background: radial-gradient(circle, rgba(168,85,247,0.2), transparent 68%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.3fr .9fr;
+      gap: 26px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: #d7ecff;
+      font-size: .88rem;
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.1rem, 4vw, 4rem);
+      line-height: 1.03;
+      letter-spacing: -0.045em;
+      max-width: 11ch;
+    }
+
+    .hero p {
+      margin: 16px 0 0;
+      max-width: 62ch;
+      color: var(--muted);
+      line-height: 1.72;
+      font-size: 1.03rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 16px;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+
+    .btn-primary {
+      color: #081220;
+      background: linear-gradient(135deg, #7dd3fc, #c4b5fd);
+      box-shadow: 0 18px 34px rgba(125,211,252,0.18);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .hero-stats {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.55rem;
+      margin-bottom: 6px;
+    }
+
+    .stat span { color: var(--muted); }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin: 0 0 18px;
+    }
+
+    .search-wrap { position: relative; }
+
+    .search-wrap::before {
+      content: "⌕";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #d7e7ff;
+      font-size: 1.1rem;
+      opacity: .9;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 56px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.055);
+      color: var(--text);
+      padding: 0 18px 0 48px;
+      outline: none;
+      font-size: 1rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .search-input::placeholder { color: #acc0df; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--chip);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 11px 15px;
+      font: inherit;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .chip:hover,
+    .chip.active {
+      background: var(--chip-active);
+      border-color: rgba(196,181,253,0.32);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(1.45rem, 2vw, 1.95rem);
+      letter-spacing: -0.03em;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .count {
+      color: #d5e7ff;
+      font-size: .95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      padding-bottom: 34px;
+    }
+
+    .card {
+      position: relative;
+      min-height: 344px;
+      padding: 24px 24px 22px;
+      border-radius: 28px;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform .22s ease, box-shadow .22s ease;
+      isolation: isolate;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.36);
+    }
+
+    .card::before,
+    .card::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .card::before {
+      width: 210px;
+      height: 210px;
+      right: -58px;
+      bottom: -88px;
+      background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 62%);
+      filter: blur(6px);
+    }
+
+    .card::after {
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    }
+
+    .card-head {
+      position: relative;
+      z-index: 1;
+    }
+
+    .icon-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 1.55rem;
+      margin-bottom: 18px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+      backdrop-filter: blur(10px);
+    }
+
+    .category {
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      opacity: .92;
+      margin-bottom: 10px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(1.45rem, 2vw, 2rem);
+      line-height: 1.12;
+      letter-spacing: -0.035em;
+    }
+
+    .desc {
+      margin: 14px 0 0;
+      font-size: 1rem;
+      line-height: 1.58;
+      color: rgba(255,255,255,0.9);
+      max-width: 28ch;
+    }
+
+    .card-foot {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .arrow {
+      font-size: 1.55rem;
+      line-height: 1;
+      opacity: .95;
+    }
+
+    .hidden { display: none !important; }
+
+    .empty {
+      display: none;
+      margin: 6px 0 30px;
+      padding: 24px;
+      border-radius: 22px;
+      border: 1px dashed rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .c1 { background: linear-gradient(135deg, #ff7b00, #ff4d2d); }
+    .c2 { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+    .c3 { background: linear-gradient(135deg, #6d28d9, #4f46e5); }
+    .c4 { background: linear-gradient(135deg, #ff9a00, #ff6a00); }
+    .c5 { background: linear-gradient(135deg, #f43f5e, #ec4899); }
+    .c6 { background: linear-gradient(135deg, #0ea5e9, #14b8a6); }
+    .c7 { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+    .c8 { background: linear-gradient(135deg, #a855f7, #ec4899); }
+    .c9 { background: linear-gradient(135deg, #1d9bf0, #3b82f6); }
+    .c10 { background: linear-gradient(135deg, #84cc16, #22c55e); }
+    .c11 { background: linear-gradient(135deg, #4f8cf7, #8b5cf6); }
+    .c12 { background: linear-gradient(135deg, #8b5cf6, #3b82f6); }
+    .c13 { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
+    .c14 { background: linear-gradient(135deg, #0f766e, #14b8a6); }
+    .c15 { background: linear-gradient(135deg, #2563eb, #0ea5e9); }
+    .c16 { background: linear-gradient(135deg, #f97316, #ef4444); }
+    .c17 { background: linear-gradient(135deg, #22c55e, #14b8a6); }
+    .c18 { background: linear-gradient(135deg, #f59e0b, #eab308); }
+    .c19 { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+    .c20 { background: linear-gradient(135deg, #64748b, #0ea5e9); }
+
+    @media (max-width: 1180px) {
+      .hero-grid,
+      .toolbar { grid-template-columns: 1fr; }
+      .chips { justify-content: flex-start; }
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-head { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 620px) {
+      .container { width: min(100% - 18px, 1320px); }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .hero { padding: 22px; }
+      .grid { grid-template-columns: 1fr; }
+      .card { min-height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <a class="brand" href="#top">
+        <div class="brand-mark">🧪</div>
+        <div class="brand-copy">
+          <strong>Interactive STEM Experiments</strong>
+          <span>Engineering, computing, AI, architecture, and science simulations</span>
+        </div>
+      </a>
+      <a class="top-action" href="#experiments">Browse experiments</a>
+    </div>
+
+    <section class="hero" id="top">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">Interactive STEM Gallery</div>
+          <h1>Explore science through interactive experiments.</h1>
+          <p>
+            Use the search bar and category filters to quickly find simulations in energy, mathematics,
+            mechanics, electronics, computing, AI, architecture, control, and environmental systems.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#experiments">Open experiment gallery</a>
+            <a class="btn btn-secondary" href="Wind_Turbine_Experiment.html">Start exploring</a>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><div><strong>20</strong><span>interactive experiments</span></div><div class="stat-icon">⚗️</div></div>
+          <div class="stat"><div><strong>9</strong><span>learning categories</span></div><div class="stat-icon">📚</div></div>
+          <div class="stat"><div><strong>Visual</strong><span>hands-on exploration</span></div><div class="stat-icon">🔬</div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input id="searchInput" class="search-input" type="text" placeholder="Search experiments, categories, or concepts..." />
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="energy">Energy</button>
+        <button class="chip" data-filter="mechanics">Mechanics</button>
+        <button class="chip" data-filter="math">Math</button>
+        <button class="chip" data-filter="electronics">Electronics</button>
+        <button class="chip" data-filter="control">Control</button>
+        <button class="chip" data-filter="computing">Computing</button>
+        <button class="chip" data-filter="ai">AI / ML</button>
+        <button class="chip" data-filter="architecture">Architecture</button>
+        <button class="chip" data-filter="environment">Environment</button>
+      </div>
+    </div>
+
+    <section id="experiments">
+      <div class="section-head">
+        <div>
+          <h2>Experiment gallery</h2>
+          <p>Open any experiment to start exploring.</p>
+        </div>
+        <div class="count"><span id="resultCount">20 experiments</span></div>
+      </div>
+
+      <div class="grid" id="experimentGrid">
+
+        <a class="card c1" href="Wind_Turbine_Experiment.html" data-category="energy" data-search="wind turbine experiment renewable energy rotor blades power generation air density">
+          <div class="card-head">
+            <div class="icon-box">🌬️</div>
+            <div class="category">Energy</div>
+            <h3 class="title">Wind Turbine Experiment</h3>
+            <p class="desc">Understand how wind conditions and system variables affect energy generation.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c2" href="Interactive_Truss_Experiment.html" data-category="mechanics" data-search="interactive truss experiment structures statics forces tension compression engineering">
+          <div class="card-head">
+            <div class="icon-box">📐</div>
+            <div class="category">Mechanics</div>
+            <h3 class="title">Interactive Truss Experiment</h3>
+            <p class="desc">Explore how loads, supports, and members behave in a structural system.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c3" href="Integrals_as_Area_Explorer.html" data-category="math" data-search="integrals as area explorer mathematics calculus area under curve definite integrals">
+          <div class="card-head">
+            <div class="icon-box">∫</div>
+            <div class="category">Mathematics</div>
+            <h3 class="title">Integrals as Area</h3>
+            <p class="desc">Visualize how definite integrals represent the area under a curve.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c4" href="Solar_Panel_Angle_vs_Power.html" data-category="energy" data-search="solar panel angle vs power photovoltaics irradiance angle power output sun">
+          <div class="card-head">
+            <div class="icon-box">☀️</div>
+            <div class="category">Energy</div>
+            <h3 class="title">Solar Panel Angle vs Power</h3>
+            <p class="desc">Explore how panel orientation affects solar energy capture and output performance.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c5" href="Logic_Gates_and_Truth_Tables.html" data-category="electronics" data-search="logic gates and truth tables digital logic and or not nand xor binary electronics">
+          <div class="card-head">
+            <div class="icon-box">⊕</div>
+            <div class="category">Digital Logic</div>
+            <h3 class="title">Logic Gates and Truth Tables</h3>
+            <p class="desc">Investigate AND, OR, NOT, NAND, NOR, XOR, and how binary logic produces outputs.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c6" href="Solar_Panel_Tilt_and_Output.html" data-category="energy" data-search="solar panel tilt and output photovoltaics tilt angle sun power energy">
+          <div class="card-head">
+            <div class="icon-box">🔆</div>
+            <div class="category">Energy</div>
+            <h3 class="title">Solar Panel Tilt and Output</h3>
+            <p class="desc">Study how tilt adjustments influence solar panel exposure and electrical output.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c7" href="Graphing_Linear_and_Nonlinear_Functions.html" data-category="math" data-search="graphing linear and nonlinear functions mathematics graphs slope parameters curves">
+          <div class="card-head">
+            <div class="icon-box">📈</div>
+            <div class="category">Mathematics</div>
+            <h3 class="title">Graphing Linear and Nonlinear Functions</h3>
+            <p class="desc">Compare different graph types and observe how changing parameters affects each curve.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c8" href="Projectile_Motion.html" data-category="mechanics" data-search="projectile motion physics range height angle velocity acceleration">
+          <div class="card-head">
+            <div class="icon-box">🚀</div>
+            <div class="category">Physics</div>
+            <h3 class="title">Projectile Motion</h3>
+            <p class="desc">Study range, height, angle, and velocity in a classic motion simulation.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c9" href="Hookes_Law_and_Spring_Systems.html" data-category="mechanics" data-search="hookes law and spring systems physics force displacement stiffness springs elastic">
+          <div class="card-head">
+            <div class="icon-box">🌀</div>
+            <div class="category">Physics</div>
+            <h3 class="title">Hooke’s Law and Spring Systems</h3>
+            <p class="desc">See how force, displacement, and spring stiffness interact in elastic systems.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c10" href="PID_Controller_Basics.html" data-category="control" data-search="pid controller basics control systems proportional integral derivative dynamic response">
+          <div class="card-head">
+            <div class="icon-box">🎛️</div>
+            <div class="category">Control Systems</div>
+            <h3 class="title">PID Controller Basics</h3>
+            <p class="desc">Explore proportional, integral, and derivative control effects in dynamic behavior.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c11" href="Friction_on_an_Inclined_Plane.html" data-category="mechanics" data-search="friction on an inclined plane slope gravity mass motion ramp normal force">
+          <div class="card-head">
+            <div class="icon-box">△</div>
+            <div class="category">Physics</div>
+            <h3 class="title">Friction on an Inclined Plane</h3>
+            <p class="desc">Analyze how slope angle, gravity, mass, and friction influence motion on a ramp.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c12" href="knn_simulator.html" data-category="ai" data-search="knn simulator k nearest neighbors machine learning classification decision regions neighbors k value points">
+          <div class="card-head">
+            <div class="icon-box">🧠</div>
+            <div class="category">AI / ML</div>
+            <h3 class="title">K-Nearest Neighbors</h3>
+            <p class="desc">Classify points visually, inspect nearest neighbors, and see how changing k affects decision regions.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c13" href="linear_regression_simulator.html" data-category="ai" data-search="linear regression simulator slope intercept noise mse prediction error scatter plot best fit line machine learning">
+          <div class="card-head">
+            <div class="icon-box">📉</div>
+            <div class="category">AI / ML</div>
+            <h3 class="title">Linear Regression</h3>
+            <p class="desc">Change data points, slope, intercept, and noise while tracking best-fit behavior and MSE.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c14" href="cpu_scheduling_simulator.html" data-category="computing" data-search="cpu scheduling simulator fcfs sjf round robin gantt chart waiting time turnaround time cpu utilization operating systems">
+          <div class="card-head">
+            <div class="icon-box">🖥️</div>
+            <div class="category">Computing</div>
+            <h3 class="title">CPU Scheduling Simulator</h3>
+            <p class="desc">Compare FCFS, SJF, and Round Robin with Gantt charts, waiting time, turnaround time, and CPU utilization.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c15" href="page_replacement_simulator.html" data-category="computing" data-search="page replacement simulator fifo lru optimal page frames hits faults fault rate memory operating systems">
+          <div class="card-head">
+            <div class="icon-box">💾</div>
+            <div class="category">Computing</div>
+            <h3 class="title">Page Replacement Algorithms</h3>
+            <p class="desc">Visualize FIFO, LRU, and Optimal algorithms through frames, hits, faults, and fault-rate comparison.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c16" href="wind_load_tall_buildings.html" data-category="architecture" data-search="wind load tall buildings pressure zones sway facade pressure structural response architecture engineering">
+          <div class="card-head">
+            <div class="icon-box">🏙️</div>
+            <div class="category">Architecture</div>
+            <h3 class="title">Wind Load on Tall Buildings</h3>
+            <p class="desc">Explore wind pressure zones, sway effects, façade loading, and structural response ideas for tall buildings.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c17" href="hvac_load_estimator.html" data-category="architecture" data-search="hvac load estimator room size occupancy glazing climate cooling load heating load tonnage architecture engineering">
+          <div class="card-head">
+            <div class="icon-box">🏠</div>
+            <div class="category">Architecture</div>
+            <h3 class="title">HVAC Load Estimator</h3>
+            <p class="desc">Estimate cooling and heating demand based on room size, occupancy, glazing, climate, and major load contributors.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c18" href="traffic_intersection_simulator.html" data-category="control" data-search="traffic intersection simulator moving cars traffic lights lane switching congestion buildup road engineering transport systems">
+          <div class="card-head">
+            <div class="icon-box">🚦</div>
+            <div class="category">Control Systems</div>
+            <h3 class="title">Traffic Intersection Simulator</h3>
+            <p class="desc">Observe moving vehicles, signal timing, lane behavior, and congestion buildup in a road engineering context.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c19" href="elevator-control-simulator.html" data-category="control" data-search="elevator control simulator floors doors people waiting queue buildup optimization operations control systems">
+          <div class="card-head">
+            <div class="icon-box">🛗</div>
+            <div class="category">Control Systems</div>
+            <h3 class="title">Elevator Control Simulator</h3>
+            <p class="desc">Simulate elevator motion, door timing, passenger flow, and queue buildup during peak operation.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+        <a class="card c20" href="weather-visualizer.html" data-category="environment" data-search="weather visualizer rain snow clouds lightning wind particles climate atmosphere environment visualization">
+          <div class="card-head">
+            <div class="icon-box">⛈️</div>
+            <div class="category">Environment</div>
+            <h3 class="title">Weather Visualizer</h3>
+            <p class="desc">Animate rain, snow, clouds, lightning, and wind particles in an immersive atmospheric scene.</p>
+          </div>
+          <div class="card-foot"><span>Open Experiment</span><span class="arrow">→</span></div>
+        </a>
+
+      </div>
+
+      <div class="empty" id="emptyState">No experiments match your search or filter.</div>
+    </section>
+  </div>
+
+  <script>
+    const chips = [...document.querySelectorAll('.chip')];
+    const cards = [...document.querySelectorAll('.card')];
+    const searchInput = document.getElementById('searchInput');
+    const resultCount = document.getElementById('resultCount');
+    const emptyState = document.getElementById('emptyState');
+    let activeFilter = 'all';
+
+    function updateGallery() {
+      const q = searchInput.value.trim().toLowerCase();
+      let count = 0;
+
+      cards.forEach(card => {
+        const category = card.dataset.category;
+        const searchable = (card.dataset.search + ' ' + card.innerText).toLowerCase();
+        const matchesFilter = activeFilter === 'all' || category === activeFilter;
+        const matchesSearch = !q || searchable.includes(q);
+        const show = matchesFilter && matchesSearch;
+        card.classList.toggle('hidden', !show);
+        if (show) count += 1;
+      });
+
+      resultCount.textContent = `${count} experiment${count === 1 ? '' : 's'}`;
+      emptyState.style.display = count === 0 ? 'block' : 'none';
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeFilter = chip.dataset.filter;
+        updateGallery();
+      });
+    });
+
+    searchInput.addEventListener('input', updateGallery);
+    updateGallery();
+  </script>
+</body>
+</html>
