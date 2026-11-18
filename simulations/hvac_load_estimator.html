@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HVAC Load Estimator</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #2563eb;
+      --cool: #0ea5e9;
+      --heat: #ef4444;
+      --good: #059669;
+      --warn: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1450px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #eef4ff, #ffffff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    .panel, .main-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input, select, button {
+      font: inherit;
+    }
+
+    input[type="number"],
+    input[type="range"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 72px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .value-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      text-align: center;
+      padding: 10px 6px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .box {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .primary:hover {
+      opacity: 0.92;
+      color: white;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: bold;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      line-height: 1.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 18px;
+    }
+
+    .cooling {
+      color: var(--cool);
+    }
+
+    .heating {
+      color: var(--heat);
+    }
+
+    .tonnage {
+      color: var(--good);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+    }
+
+    .notes-wrap p, .notes-wrap li {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>HVAC Load Estimator</h1>
+      <p>
+        Explore how room size, occupancy, glazing, and climate affect cooling load, heating load,
+        major load contributors, and estimated air-conditioning tonnage.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Inputs</h2>
+
+        <div class="group">
+          <label for="lengthInput">Room length (m)</label>
+          <input type="number" id="lengthInput" min="1" step="0.1" value="6" />
+        </div>
+
+        <div class="group">
+          <label for="widthInput">Room width (m)</label>
+          <input type="number" id="widthInput" min="1" step="0.1" value="5" />
+        </div>
+
+        <div class="group">
+          <label for="heightInput">Room height (m)</label>
+          <input type="number" id="heightInput" min="2" step="0.1" value="3" />
+        </div>
+
+        <div class="group">
+          <label for="occupancyInput">Occupancy (people)</label>
+          <input type="number" id="occupancyInput" min="0" step="1" value="4" />
+        </div>
+
+        <div class="group">
+          <label for="glazingSlider">Glazing ratio of wall area (%)</label>
+          <div class="range-row">
+            <input type="range" id="glazingSlider" min="0" max="80" step="1" value="25" />
+            <div class="value-box" id="glazingValue">25%</div>
+          </div>
+        </div>
+
+        <div class="group">
+          <label for="climateSelect">Climate</label>
+          <select id="climateSelect">
+            <option value="hotDry">Hot Dry</option>
+            <option value="hotHumid">Hot Humid</option>
+            <option value="temperate" selected>Temperate</option>
+            <option value="cold">Cold</option>
+          </select>
+        </div>
+
+        <div class="box">
+          <div class="btn-row">
+            <button class="primary" id="calculateBtn">Estimate Loads</button>
+            <button id="sampleOfficeBtn">Office Sample</button>
+            <button id="sampleClassBtn">Classroom Sample</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>How it works</h3>
+          <ul style="margin:0; padding-left:20px; color:var(--muted); line-height:1.6;">
+            <li>Cooling load includes envelope, glass solar gain, ventilation, people, and equipment.</li>
+            <li>Heating load includes transmission and ventilation losses, reduced by internal gains.</li>
+            <li>The model uses simplified assumptions for educational use.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>Status</h3>
+          <div class="status" id="statusText">
+            Change the inputs and click Estimate Loads to calculate HVAC demand.
+          </div>
+        </div>
+      </div>
+
+      <div class="main-panel">
+        <div class="box">
+          <h2>Estimated Results</h2>
+          <div class="stats">
+            <div class="stat">
+              <small>Cooling load</small>
+              <strong class="cooling" id="coolingLoadOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Heating load</small>
+              <strong class="heating" id="heatingLoadOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>AC tonnage estimate</small>
+              <strong class="tonnage" id="tonnageOut">-</strong>
+            </div>
+            <div class="stat">
+              <small>Room area</small>
+              <strong id="areaOut">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="box">
+            <h2>Cooling Load Contributors</h2>
+            <canvas id="coolingCanvas" width="560" height="320"></canvas>
+          </div>
+
+          <div class="box">
+            <h2>Heating Load Contributors</h2>
+            <canvas id="heatingCanvas" width="560" height="320"></canvas>
+          </div>
+        </div>
+
+        <div class="box">
+          <h2>Major Load Contributors</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Contributor</th>
+                  <th>Cooling (kW)</th>
+                  <th>Heating (kW)</th>
+                  <th>Importance</th>
+                </tr>
+              </thead>
+              <tbody id="contributorsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="box notes-wrap">
+          <h3>What students should notice</h3>
+          <ul>
+            <li>Larger glazing areas usually increase cooling demand strongly because of solar gain.</li>
+            <li>Occupancy increases cooling load and can reduce heating load due to internal gains.</li>
+            <li>Climate has a major influence on both cooling and heating demand.</li>
+            <li>Room size affects envelope area, ventilation volume, and internal load magnitude.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Educational HVAC estimator using simplified load assumptions. Not for final engineering design.
+    </div>
+  </div>
+
+  <script>
+    const lengthInput = document.getElementById("lengthInput");
+    const widthInput = document.getElementById("widthInput");
+    const heightInput = document.getElementById("heightInput");
+    const occupancyInput = document.getElementById("occupancyInput");
+    const glazingSlider = document.getElementById("glazingSlider");
+    const glazingValue = document.getElementById("glazingValue");
+    const climateSelect = document.getElementById("climateSelect");
+
+    const calculateBtn = document.getElementById("calculateBtn");
+    const sampleOfficeBtn = document.getElementById("sampleOfficeBtn");
+    const sampleClassBtn = document.getElementById("sampleClassBtn");
+
+    const coolingLoadOut = document.getElementById("coolingLoadOut");
+    const heatingLoadOut = document.getElementById("heatingLoadOut");
+    const tonnageOut = document.getElementById("tonnageOut");
+    const areaOut = document.getElementById("areaOut");
+    const statusText = document.getElementById("statusText");
+    const contributorsBody = document.getElementById("contributorsBody");
+
+    const coolingCanvas = document.getElementById("coolingCanvas");
+    const heatingCanvas = document.getElementById("heatingCanvas");
+    const coolingCtx = coolingCanvas.getContext("2d");
+    const heatingCtx = heatingCanvas.getContext("2d");
+
+    const climates = {
+      hotDry: {
+        name: "Hot Dry",
+        summerOutdoor: 40,
+        winterOutdoor: 8,
+        solarGain: 260,
+        ach: 0.7
+      },
+      hotHumid: {
+        name: "Hot Humid",
+        summerOutdoor: 35,
+        winterOutdoor: 18,
+        solarGain: 230,
+        ach: 1.0
+      },
+      temperate: {
+        name: "Temperate",
+        summerOutdoor: 30,
+        winterOutdoor: 8,
+        solarGain: 180,
+        ach: 0.6
+      },
+      cold: {
+        name: "Cold",
+        summerOutdoor: 26,
+        winterOutdoor: -5,
+        solarGain: 120,
+        ach: 0.5
+      }
+    };
+
+    const assumptions = {
+      coolingSetpoint: 24,
+      heatingSetpoint: 21,
+      wallU: 0.8,
+      roofU: 0.5,
+      glassU: 5.5,
+      shgc: 0.7,
+      peopleCoolingW: 130,
+      peopleHeatingOffsetW: 100,
+      equipmentWm2: 8
+    };
+
+    function formatKW(value) {
+      return `${value.toFixed(2)} kW`;
+    }
+
+    function formatArea(value) {
+      return `${value.toFixed(1)} m²`;
+    }
+
+    function updateGlazingLabel() {
+      glazingValue.textContent = `${glazingSlider.value}%`;
+    }
+
+    function clampMin(value, min) {
+      return Math.max(min, value);
+    }
+
+    function calculateLoads() {
+      const L = clampMin(Number(lengthInput.value), 1);
+      const W = clampMin(Number(widthInput.value), 1);
+      const H = clampMin(Number(heightInput.value), 2);
+      const occupancy = clampMin(Number(occupancyInput.value), 0);
+      const glazingRatio = Number(glazingSlider.value) / 100;
+      const climate = climates[climateSelect.value];
+
+      const floorArea = L * W;
+      const volume = floorArea * H;
+      const wallArea = 2 * H * (L + W);
+      const glazingArea = wallArea * glazingRatio;
+      const opaqueWallArea = wallArea - glazingArea;
+      const roofArea = floorArea;
+
+      const deltaTCooling = Math.max(climate.summerOutdoor - assumptions.coolingSetpoint, 0);
+      const deltaTHeating = Math.max(assumptions.heatingSetpoint - climate.winterOutdoor, 0);
+
+      const wallCooling = assumptions.wallU * opaqueWallArea * deltaTCooling;
+      const roofCooling = assumptions.roofU * roofArea * deltaTCooling;
+      const glassCondCooling = assumptions.glassU * glazingArea * deltaTCooling;
+      const solarCooling = glazingArea * climate.solarGain * assumptions.shgc;
+      const ventilationCooling = 0.33 * climate.ach * volume * deltaTCooling;
+      const peopleCooling = occupancy * assumptions.peopleCoolingW;
+      const equipmentCooling = floorArea * assumptions.equipmentWm2;
+
+      const coolingContributors = {
+        "Walls": wallCooling / 1000,
+        "Roof": roofCooling / 1000,
+        "Glass conduction": glassCondCooling / 1000,
+        "Solar through glazing": solarCooling / 1000,
+        "Ventilation / infiltration": ventilationCooling / 1000,
+        "Occupancy": peopleCooling / 1000,
+        "Equipment / lighting": equipmentCooling / 1000
+      };
+
+      const totalCoolingKW = Object.values(coolingContributors).reduce((a, b) => a + b, 0);
+
+      const wallHeating = assumptions.wallU * opaqueWallArea * deltaTHeating;
+      const roofHeating = assumptions.roofU * roofArea * deltaTHeating;
+      const glassCondHeating = assumptions.glassU * glazingArea * deltaTHeating;
+      const ventilationHeating = 0.33 * climate.ach * volume * deltaTHeating;
+      const peopleHeatingOffset = occupancy * assumptions.peopleHeatingOffsetW;
+      const equipmentHeatingOffset = floorArea * assumptions.equipmentWm2;
+
+      const grossHeatingKW = (wallHeating + roofHeating + glassCondHeating + ventilationHeating) / 1000;
+      const internalHeatOffsetKW = (peopleHeatingOffset + equipmentHeatingOffset) / 1000;
+      const totalHeatingKW = Math.max(grossHeatingKW - internalHeatOffsetKW, 0);
+
+      const heatingContributors = {
+        "Walls": wallHeating / 1000,
+        "Roof": roofHeating / 1000,
+        "Glass conduction": glassCondHeating / 1000,
+        "Ventilation / infiltration": ventilationHeating / 1000,
+        "Occupancy offset": -(peopleHeatingOffset / 1000),
+        "Equipment / lighting offset": -(equipmentHeatingOffset / 1000)
+      };
+
+      const totalCoolingBTUh = totalCoolingKW * 3412.142;
+      const acTons = totalCoolingBTUh / 12000;
+
+      coolingLoadOut.textContent = formatKW(totalCoolingKW);
+      heatingLoadOut.textContent = formatKW(totalHeatingKW);
+      tonnageOut.textContent = `${acTons.toFixed(2)} TR`;
+      areaOut.textContent = formatArea(floorArea);
+
+      statusText.textContent =
+        `Estimated loads updated for a ${floorArea.toFixed(1)} m² room in ${climate.name} climate. Cooling is mainly influenced by solar gain, ventilation, occupancy, and envelope conditions.`;
+
+      drawBarChart(coolingCtx, coolingCanvas, coolingContributors, "Cooling Contributors", true);
+      drawBarChart(heatingCtx, heatingCanvas, heatingContributors, "Heating Contributors", false);
+      renderContributorsTable(coolingContributors, heatingContributors);
+    }
+
+    function renderContributorsTable(cooling, heating) {
+      contributorsBody.innerHTML = "";
+
+      const allKeys = Array.from(new Set([...Object.keys(cooling), ...Object.keys(heating)]));
+
+      const rows = allKeys.map(key => {
+        const c = cooling[key] || 0;
+        const h = heating[key] || 0;
+        const importance = Math.max(Math.abs(c), Math.abs(h));
+        return { key, c, h, importance };
+      }).sort((a, b) => b.importance - a.importance);
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        let importanceLabel = "Low";
+        if (row.importance >= 2.5) importanceLabel = "High";
+        else if (row.importance >= 1.0) importanceLabel = "Medium";
+
+        tr.innerHTML = `
+          <td>${row.key}</td>
+          <td>${row.c.toFixed(2)}</td>
+          <td>${row.h.toFixed(2)}</td>
+          <td>${importanceLabel}</td>
+        `;
+
+        contributorsBody.appendChild(tr);
+      });
+    }
+
+    function drawBarChart(ctx, canvas, data, title, positiveOnly) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const entries = Object.entries(data);
+      if (entries.length === 0) return;
+
+      const padL = 160;
+      const padR = 30;
+      const padT = 35;
+      const padB = 35;
+      const plotW = canvas.width - padL - padR;
+      const plotH = canvas.height - padT - padB;
+
+      let maxAbs = 0;
+      entries.forEach(([, value]) => {
+        maxAbs = Math.max(maxAbs, Math.abs(value));
+      });
+      if (maxAbs === 0) maxAbs = 1;
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "16px Arial";
+      ctx.fillText(title, 16, 24);
+
+      const rowH = plotH / entries.length;
+
+      entries.forEach(([label, value], i) => {
+        const y = padT + i * rowH + 8;
+        const barH = rowH - 16;
+
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "13px Arial";
+        ctx.fillText(label, 12, y + barH * 0.72);
+
+        const zeroX = positiveOnly ? padL : padL + plotW * 0.35;
+
+        ctx.strokeStyle = "#e5e7eb";
+        ctx.beginPath();
+        ctx.moveTo(padL, y + barH + 5);
+        ctx.lineTo(canvas.width - padR, y + barH + 5);
+        ctx.stroke();
+
+        if (!positiveOnly) {
+          ctx.strokeStyle = "#9ca3af";
+          ctx.beginPath();
+          ctx.moveTo(zeroX, padT);
+          ctx.lineTo(zeroX, canvas.height - padB);
+          ctx.stroke();
+        }
+
+        if (positiveOnly) {
+          const width = (Math.max(value, 0) / maxAbs) * plotW;
+          ctx.fillStyle = "#0ea5e9";
+          ctx.fillRect(padL, y, width, barH);
+          ctx.fillStyle = "#111827";
+          ctx.fillText(`${value.toFixed(2)} kW`, padL + width + 8, y + barH * 0.72);
+        } else {
+          const halfW = plotW * 0.65;
+          const width = (Math.abs(value) / maxAbs) * halfW;
+
+          if (value >= 0) {
+            ctx.fillStyle = "#ef4444";
+            ctx.fillRect(zeroX, y, width, barH);
+            ctx.fillStyle = "#111827";
+            ctx.fillText(`${value.toFixed(2)} kW`, zeroX + width + 8, y + barH * 0.72);
+          } else {
+            ctx.fillStyle = "#10b981";
+            ctx.fillRect(zeroX - width, y, width, barH);
+            ctx.fillStyle = "#111827";
+            ctx.fillText(`${value.toFixed(2)} kW`, zeroX - width - 60, y + barH * 0.72);
+          }
+        }
+      });
+    }
+
+    function loadOfficeSample() {
+      lengthInput.value = 6;
+      widthInput.value = 5;
+      heightInput.value = 3;
+      occupancyInput.value = 4;
+      glazingSlider.value = 30;
+      climateSelect.value = "hotHumid";
+      updateGlazingLabel();
+      calculateLoads();
+    }
+
+    function loadClassroomSample() {
+      lengthInput.value = 9;
+      widthInput.value = 7;
+      heightInput.value = 3.2;
+      occupancyInput.value = 20;
+      glazingSlider.value = 20;
+      climateSelect.value = "temperate";
+      updateGlazingLabel();
+      calculateLoads();
+    }
+
+    glazingSlider.addEventListener("input", updateGlazingLabel);
+    calculateBtn.addEventListener("click", calculateLoads);
+    sampleOfficeBtn.addEventListener("click", loadOfficeSample);
+    sampleClassBtn.addEventListener("click", loadClassroomSample);
+
+    updateGlazingLabel();
+    calculateLoads();
+  </script>
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Visualizer</title>
+  <style>
+    :root{
+      --bg:#eef4fb;
+      --panel:#ffffff;
+      --line:#d9e3ef;
+      --text:#122033;
+      --muted:#5c6b7b;
+      --accent:#2563eb;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#edf4fb 0%, #dfeaf6 100%);
+      color:var(--text);
+    }
+
+    .wrap{
+      max-width:1450px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    .title{
+      background:linear-gradient(135deg,#eef5ff,#ffffff);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px;
+      margin-bottom:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    .title h1{
+      margin:0 0 8px;
+      font-size:30px;
+    }
+
+    .title p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:320px 1fr;
+      gap:18px;
+    }
+
+    .panel,
+    .viewer{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.05);
+    }
+
+    .block{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      margin-bottom:14px;
+      background:#fbfdff;
+    }
+
+    .block h3{
+      margin:0 0 12px;
+      font-size:17px;
+    }
+
+    .check{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+      font-size:15px;
+    }
+
+    .check:last-child{
+      margin-bottom:0;
+    }
+
+    .row{
+      margin-bottom:12px;
+    }
+
+    label{
+      display:block;
+      font-weight:bold;
+      margin-bottom:6px;
+      font-size:14px;
+    }
+
+    .range-wrap{
+      display:grid;
+      grid-template-columns:1fr 80px;
+      gap:10px;
+      align-items:center;
+    }
+
+    .value{
+      text-align:center;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      padding:8px;
+      color:var(--accent);
+      font-weight:bold;
+      font-size:14px;
+    }
+
+    input[type="range"]{
+      width:100%;
+    }
+
+    .btns{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    button{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font:inherit;
+      transition:.2s;
+    }
+
+    button:hover{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+
+    .primary{
+      background:var(--accent);
+      color:#fff;
+      border-color:var(--accent);
+    }
+
+    .primary:hover{
+      color:#fff;
+      opacity:.94;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .stat{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      padding:12px;
+    }
+
+    .stat small{
+      display:block;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .stat strong{
+      font-size:18px;
+    }
+
+    .canvas-box{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px;
+      background:#f8fbff;
+    }
+
+    canvas{
+      width:100%;
+      display:block;
+      border-radius:12px;
+      border:1px solid #e5edf7;
+      background:#fff;
+    }
+
+    .note{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    @media (max-width:1100px){
+      .layout{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <h1>Weather Visualizer</h1>
+      <p>
+        Interactive HTML canvas weather scene with animated rain, snow, drifting clouds, lightning flashes,
+        and wind particles. Turn effects on and off and adjust intensity and wind strength.
+      </p>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <div class="block">
+          <h3>Weather effects</h3>
+
+          <label class="check">
+            <input type="checkbox" id="rainToggle" checked />
+            Rain
+          </label>
+
+          <label class="check">
+            <input type="checkbox" id="snowToggle" />
+            Snow
+          </label>
+
+          <label class="check">
+            <input type="checkbox" id="cloudToggle" checked />
+            Clouds
+          </label>
+
+          <label class="check">
+            <input type="checkbox" id="lightningToggle" checked />
+            Lightning
+          </label>
+
+          <label class="check">
+            <input type="checkbox" id="windToggle" checked />
+            Wind particles
+          </label>
+        </div>
+
+        <div class="block">
+          <h3>Controls</h3>
+
+          <div class="row">
+            <label for="intensity">Intensity</label>
+            <div class="range-wrap">
+              <input type="range" id="intensity" min="1" max="10" step="1" value="6" />
+              <div class="value" id="intensityVal">6</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="windSpeed">Wind strength</label>
+            <div class="range-wrap">
+              <input type="range" id="windSpeed" min="-10" max="10" step="1" value="4" />
+              <div class="value" id="windSpeedVal">4</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <label for="cloudSpeed">Cloud speed</label>
+            <div class="range-wrap">
+              <input type="range" id="cloudSpeed" min="1" max="10" step="1" value="4" />
+              <div class="value" id="cloudSpeedVal">4</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Presets</h3>
+          <div class="btns">
+            <button id="stormBtn">Thunderstorm</button>
+            <button id="snowBtn">Snowy</button>
+            <button id="windyBtn">Windy</button>
+            <button id="clearBtn">Cloudy</button>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Actions</h3>
+          <div class="btns">
+            <button class="primary" id="pauseBtn">Pause</button>
+            <button id="resetBtn">Reset</button>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Notes</h3>
+          <div class="note">
+            Positive wind values push particles to the right. Negative values push them to the left.
+            Lightning appears only when clouds and lightning are enabled.
+          </div>
+        </div>
+      </div>
+
+      <div class="viewer">
+        <div class="stats">
+          <div class="stat">
+            <small>Rain drops</small>
+            <strong id="rainCount">0</strong>
+          </div>
+          <div class="stat">
+            <small>Snow flakes</small>
+            <strong id="snowCount">0</strong>
+          </div>
+          <div class="stat">
+            <small>Clouds</small>
+            <strong id="cloudCount">0</strong>
+          </div>
+          <div class="stat">
+            <small>Wind particles</small>
+            <strong id="windCount">0</strong>
+          </div>
+          <div class="stat">
+            <small>Lightning flashes</small>
+            <strong id="lightningCount">0</strong>
+          </div>
+        </div>
+
+        <div class="canvas-box">
+          <canvas id="weatherCanvas" width="1200" height="760"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("weatherCanvas");
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const rainToggle = document.getElementById("rainToggle");
+    const snowToggle = document.getElementById("snowToggle");
+    const cloudToggle = document.getElementById("cloudToggle");
+    const lightningToggle = document.getElementById("lightningToggle");
+    const windToggle = document.getElementById("windToggle");
+
+    const intensity = document.getElementById("intensity");
+    const windSpeed = document.getElementById("windSpeed");
+    const cloudSpeed = document.getElementById("cloudSpeed");
+
+    const intensityVal = document.getElementById("intensityVal");
+    const windSpeedVal = document.getElementById("windSpeedVal");
+    const cloudSpeedVal = document.getElementById("cloudSpeedVal");
+
+    const rainCount = document.getElementById("rainCount");
+    const snowCount = document.getElementById("snowCount");
+    const cloudCount = document.getElementById("cloudCount");
+    const windCount = document.getElementById("windCount");
+    const lightningCount = document.getElementById("lightningCount");
+
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const stormBtn = document.getElementById("stormBtn");
+    const snowBtn = document.getElementById("snowBtn");
+    const windyBtn = document.getElementById("windyBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    let rainDrops = [];
+    let snowFlakes = [];
+    let clouds = [];
+    let gusts = [];
+
+    let paused = false;
+    let lastTime = 0;
+    let lightningFlashCount = 0;
+
+    let lightning = {
+      active: false,
+      timer: 0,
+      nextFlash: 2 + Math.random() * 4,
+      flashAlpha: 0,
+      bolt: []
+    };
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function updateLabels() {
+      intensityVal.textContent = intensity.value;
+      windSpeedVal.textContent = windSpeed.value;
+      cloudSpeedVal.textContent = cloudSpeed.value;
+    }
+
+    function makeRainDrop() {
+      return {
+        x: rand(-100, W + 100),
+        y: rand(-H, 0),
+        len: rand(12, 22),
+        speed: rand(12, 22)
+      };
+    }
+
+    function makeSnowFlake() {
+      return {
+        x: rand(0, W),
+        y: rand(-H, 0),
+        r: rand(1.5, 4),
+        speed: rand(0.5, 1.8),
+        drift: rand(0, Math.PI * 2),
+        wobble: rand(0.4, 1.4)
+      };
+    }
+
+    function makeCloud(x = rand(-100, W + 100)) {
+      return {
+        x,
+        y: rand(70, 250),
+        scale: rand(0.8, 1.8),
+        speed: rand(0.1, 0.45),
+        shade: rand(170, 240)
+      };
+    }
+
+    function makeGust() {
+      return {
+        x: rand(-100, W),
+        y: rand(80, H - 100),
+        len: rand(20, 60),
+        speed: rand(3, 8),
+        alpha: rand(0.12, 0.35)
+      };
+    }
+
+    function syncParticles() {
+      const level = Number(intensity.value);
+
+      const desiredRain = rainToggle.checked ? level * 45 : 0;
+      const desiredSnow = snowToggle.checked ? level * 28 : 0;
+      const desiredClouds = cloudToggle.checked ? Math.max(3, Math.floor(level / 2) + 4) : 0;
+      const desiredGusts = windToggle.checked ? level * 18 : 0;
+
+      while (rainDrops.length < desiredRain) rainDrops.push(makeRainDrop());
+      while (rainDrops.length > desiredRain) rainDrops.pop();
+
+      while (snowFlakes.length < desiredSnow) snowFlakes.push(makeSnowFlake());
+      while (snowFlakes.length > desiredSnow) snowFlakes.pop();
+
+      while (clouds.length < desiredClouds) clouds.push(makeCloud());
+      while (clouds.length > desiredClouds) clouds.pop();
+
+      while (gusts.length < desiredGusts) gusts.push(makeGust());
+      while (gusts.length > desiredGusts) gusts.pop();
+
+      rainCount.textContent = rainDrops.length;
+      snowCount.textContent = snowFlakes.length;
+      cloudCount.textContent = clouds.length;
+      windCount.textContent = gusts.length;
+      lightningCount.textContent = lightningFlashCount;
+    }
+
+    function resetScene() {
+      rainDrops = [];
+      snowFlakes = [];
+      clouds = [];
+      gusts = [];
+      lightningFlashCount = 0;
+      lightning.active = false;
+      lightning.timer = 0;
+      lightning.flashAlpha = 0;
+      lightning.nextFlash = 2 + Math.random() * 4;
+      lightning.bolt = [];
+      syncParticles();
+    }
+
+    function createLightningBolt() {
+      const startX = rand(W * 0.2, W * 0.8);
+      let x = startX;
+      let y = rand(60, 150);
+      const points = [{ x, y }];
+
+      while (y < H * 0.7) {
+        x += rand(-35, 35);
+        y += rand(20, 45);
+        points.push({ x, y });
+        if (Math.random() < 0.2) break;
+      }
+
+      lightning.bolt = points;
+      lightning.active = true;
+      lightning.timer = 0.16;
+      lightning.flashAlpha = 0.85;
+      lightningFlashCount++;
+    }
+
+    function updateLightning(dt) {
+      if (!lightningToggle.checked || !cloudToggle.checked) {
+        lightning.active = false;
+        lightning.flashAlpha = 0;
+        return;
+      }
+
+      lightning.nextFlash -= dt;
+      if (lightning.nextFlash <= 0) {
+        createLightningBolt();
+        lightning.nextFlash = rand(2.5, 7);
+      }
+
+      if (lightning.active) {
+        lightning.timer -= dt;
+        lightning.flashAlpha *= 0.88;
+        if (lightning.timer <= 0) {
+          lightning.active = false;
+        }
+      }
+    }
+
+    function updateRain(dt) {
+      const wind = Number(windSpeed.value);
+
+      for (const d of rainDrops) {
+        d.x += wind * 2.2 * dt * 60;
+        d.y += d.speed * dt * 60;
+
+        if (d.y > H) {
+          d.y = rand(-120, -20);
+          d.x = rand(-80, W + 80);
+        }
+        if (d.x > W + 120 || d.x < -120) {
+          d.x = rand(-80, W + 80);
+        }
+      }
+    }
+
+    function updateSnow(dt) {
+      const wind = Number(windSpeed.value);
+
+      for (const s of snowFlakes) {
+        s.drift += 0.03;
+        s.x += (wind * 0.45 + Math.sin(s.drift) * s.wobble) * dt * 60;
+        s.y += s.speed * dt * 60;
+
+        if (s.y > H + 10) {
+          s.y = rand(-80, -10);
+          s.x = rand(0, W);
+        }
+        if (s.x > W + 20) s.x = -20;
+        if (s.x < -20) s.x = W + 20;
+      }
+    }
+
+    function updateClouds(dt) {
+      const base = Number(cloudSpeed.value) * 0.12;
+      const wind = Number(windSpeed.value) * 0.015;
+
+      for (const c of clouds) {
+        c.x += (c.speed + base + wind) * dt * 60;
+        if (c.x - 140 * c.scale > W) {
+          c.x = -200 * c.scale;
+          c.y = rand(70, 250);
+          c.scale = rand(0.8, 1.8);
+          c.shade = rand(170, 240);
+        }
+      }
+    }
+
+    function updateGusts(dt) {
+      const wind = Number(windSpeed.value);
+
+      for (const g of gusts) {
+        g.x += (g.speed + wind * 0.8) * dt * 60;
+        g.y += Math.sin((g.x + g.y) * 0.01) * 0.3;
+
+        if (g.x > W + 100) {
+          g.x = -100;
+          g.y = rand(80, H - 100);
+        }
+        if (g.x < -120) {
+          g.x = W + 80;
+          g.y = rand(80, H - 100);
+        }
+      }
+    }
+
+    function drawBackground() {
+      const hasStorm = rainToggle.checked || lightningToggle.checked;
+      const hasSnow = snowToggle.checked && !rainToggle.checked;
+
+      let skyTop = "#7bb0e0";
+      let skyBottom = "#d8ecff";
+
+      if (hasStorm) {
+        skyTop = "#485f7c";
+        skyBottom = "#8fa6bf";
+      } else if (hasSnow) {
+        skyTop = "#a4bfd8";
+        skyBottom = "#eef7ff";
+      }
+
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, skyTop);
+      grad.addColorStop(1, skyBottom);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      const groundGrad = ctx.createLinearGradient(0, H * 0.72, 0, H);
+      groundGrad.addColorStop(0, hasSnow ? "#edf4fb" : "#7cb36a");
+      groundGrad.addColorStop(1, hasSnow ? "#d9e8f2" : "#568648");
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, H * 0.72, W, H * 0.28);
+
+      drawMountains();
+    }
+
+    function drawMountains() {
+      ctx.fillStyle = "rgba(80, 101, 123, 0.35)";
+      ctx.beginPath();
+      ctx.moveTo(0, H * 0.78);
+      ctx.lineTo(170, H * 0.58);
+      ctx.lineTo(340, H * 0.78);
+      ctx.lineTo(520, H * 0.55);
+      ctx.lineTo(700, H * 0.78);
+      ctx.lineTo(900, H * 0.52);
+      ctx.lineTo(1200, H * 0.78);
+      ctx.lineTo(1200, H);
+      ctx.lineTo(0, H);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawCloud(cloud) {
+      const s = cloud.scale;
+      const x = cloud.x;
+      const y = cloud.y;
+      const shade = cloud.shade;
+
+      ctx.fillStyle = `rgba(${shade},${shade},${shade + 8},0.88)`;
+
+      ctx.beginPath();
+      ctx.arc(x, y, 34 * s, Math.PI * 0.5, Math.PI * 1.5);
+      ctx.arc(x + 35 * s, y - 18 * s, 42 * s, Math.PI, Math.PI * 2);
+      ctx.arc(x + 82 * s, y - 4 * s, 36 * s, Math.PI * 1.1, Math.PI * 1.95);
+      ctx.arc(x + 118 * s, y + 6 * s, 26 * s, Math.PI * 1.5, Math.PI * 0.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawClouds() {
+      if (!cloudToggle.checked) return;
+      for (const c of clouds) drawCloud(c);
+    }
+
+    function drawRain() {
+      if (!rainToggle.checked) return;
+      const wind = Number(windSpeed.value);
+
+      ctx.strokeStyle = "rgba(190, 220, 255, 0.8)";
+      ctx.lineWidth = 1.5;
+
+      for (const d of rainDrops) {
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x - wind * 1.4, d.y + d.len);
+        ctx.stroke();
+      }
+    }
+
+    function drawSnow() {
+      if (!snowToggle.checked) return;
+
+      for (const s of snowFlakes) {
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawWindParticles() {
+      if (!windToggle.checked) return;
+      const wind = Number(windSpeed.value);
+
+      for (const g of gusts) {
+        ctx.strokeStyle = `rgba(255,255,255,${g.alpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(g.x, g.y);
+        ctx.lineTo(g.x + g.len + wind * 2, g.y + Math.sin(g.x * 0.02) * 4);
+        ctx.stroke();
+      }
+    }
+
+    function drawLightning() {
+      if (!lightning.active) return;
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,255,255,0.98)";
+      ctx.lineWidth = 4;
+      ctx.shadowColor = "rgba(255,255,255,0.95)";
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+
+      lightning.bolt.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawFlashOverlay() {
+      if (lightning.flashAlpha <= 0.01) return;
+      ctx.fillStyle = `rgba(255,255,255,${lightning.flashAlpha * 0.35})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function drawScene() {
+      ctx.clearRect(0, 0, W, H);
+      drawBackground();
+      drawClouds();
+      drawWindParticles();
+      drawRain();
+      drawSnow();
+      drawLightning();
+      drawFlashOverlay();
+    }
+
+    function animate(ts) {
+      if (!lastTime) lastTime = ts;
+      let dt = (ts - lastTime) / 1000;
+      lastTime = ts;
+      if (dt > 0.04) dt = 0.04;
+
+      if (!paused) {
+        syncParticles();
+        updateRain(dt);
+        updateSnow(dt);
+        updateClouds(dt);
+        updateGusts(dt);
+        updateLightning(dt);
+        lightningCount.textContent = lightningFlashCount;
+      }
+
+      drawScene();
+      requestAnimationFrame(animate);
+    }
+
+    function setPreset(type) {
+      if (type === "storm") {
+        rainToggle.checked = true;
+        snowToggle.checked = false;
+        cloudToggle.checked = true;
+        lightningToggle.checked = true;
+        windToggle.checked = true;
+        intensity.value = 8;
+        windSpeed.value = 6;
+        cloudSpeed.value = 5;
+      }
+
+      if (type === "snow") {
+        rainToggle.checked = false;
+        snowToggle.checked = true;
+        cloudToggle.checked = true;
+        lightningToggle.checked = false;
+        windToggle.checked = true;
+        intensity.value = 7;
+        windSpeed.value = 2;
+        cloudSpeed.value = 3;
+      }
+
+      if (type === "windy") {
+        rainToggle.checked = false;
+        snowToggle.checked = false;
+        cloudToggle.checked = true;
+        lightningToggle.checked = false;
+        windToggle.checked = true;
+        intensity.value = 6;
+        windSpeed.value = 9;
+        cloudSpeed.value = 7;
+      }
+
+      if (type === "clear") {
+        rainToggle.checked = false;
+        snowToggle.checked = false;
+        cloudToggle.checked = true;
+        lightningToggle.checked = false;
+        windToggle.checked = false;
+        intensity.value = 4;
+        windSpeed.value = 1;
+        cloudSpeed.value = 2;
+      }
+
+      updateLabels();
+      syncParticles();
+    }
+
+    pauseBtn.addEventListener("click", () => {
+      paused = !paused;
+      pauseBtn.textContent = paused ? "Resume" : "Pause";
+    });
+
+    resetBtn.addEventListener("click", resetScene);
+    stormBtn.addEventListener("click", () => setPreset("storm"));
+    snowBtn.addEventListener("click", () => setPreset("snow"));
+    windyBtn.addEventListener("click", () => setPreset("windy"));
+    clearBtn.addEventListener("click", () => setPreset("clear"));
+
+    intensity.addEventListener("input", updateLabels);
+    windSpeed.addEventListener("input", updateLabels);
+    cloudSpeed.addEventListener("input", updateLabels);
+
+    updateLabels();
+    resetScene();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
