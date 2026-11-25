@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tahani A. Ghobon – Portfolio | Interactive 3D Learning Worlds</title>
+<meta name="description" content="Creative technologist, instructional designer and engineering educator building 3D digital twins, educational games, virtual labs and VR experiences.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b1620;--ink2:#112332;--paper:#efe8da;--amber:#f2b45a;--cyan:#74d4e2;--mut:#9fb3c2;--r:14px;
+--f1:'Bricolage Grotesque',system-ui,sans-serif;--f2:'Newsreader',Georgia,serif}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--paper);font:400 1.125rem/1.65 var(--f2);overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.07;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.spot{position:fixed;inset:0;pointer-events:none;z-index:40;background:radial-gradient(420px circle at var(--x,50%) var(--y,30%),rgba(242,180,90,.10),transparent 70%)}
+.nav{position:fixed;top:0;inset-inline:0;z-index:60;display:flex;justify-content:space-between;align-items:center;padding:1rem clamp(1rem,4vw,3rem);font:500 .95rem var(--f1);background:linear-gradient(var(--ink),transparent)}
+.nav nav{display:flex;gap:1.4rem}.nav a{text-decoration:none;opacity:.8}.nav a:hover{opacity:1;color:var(--amber)}
+.logo{font-weight:800;font-size:1.1rem}
+h1,h2,h3{font-family:var(--f1);line-height:1.05;letter-spacing:-.02em}
+h1{font-size:clamp(2.8rem,8.5vw,7.5rem);font-weight:800}
+h2{font-size:clamp(2rem,4.6vw,3.6rem);font-weight:800;margin-bottom:.6rem}
+h3{font-size:1.4rem;font-weight:500;margin:2.4rem 0 1rem;color:var(--amber)}
+.hero{position:relative;min-height:100svh;display:flex;align-items:flex-end;padding:7rem clamp(1rem,4vw,3rem) 4rem;overflow:hidden}
+#world{position:absolute;inset:0;width:100%;height:100%}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,22,32,.85) 0,transparent 70%),linear-gradient(transparent 60%,var(--ink))}
+.hero-copy{position:relative;z-index:2;max-width:62rem}
+.hero-copy>*{animation:rise .9s cubic-bezier(.2,.7,.2,1) both}
+.hero-copy>:nth-child(2){animation-delay:.15s}.hero-copy>:nth-child(3){animation-delay:.3s}.hero-copy>:nth-child(4){animation-delay:.45s}.hero-copy>:nth-child(5){animation-delay:.6s}
+@keyframes rise{from{opacity:0;transform:translateY(28px)}}
+.kicker{font:500 1rem var(--f1);color:var(--cyan);margin-bottom:1rem}
+#verb{color:var(--amber);font-style:italic;font-family:var(--f2);font-weight:400;display:inline-block;min-width:3ch}
+.lede{max-width:40rem;margin:1.5rem 0;font-size:1.3rem;color:#d9d2c3}
+.hint{margin-top:1.5rem;font:.9rem var(--f1);color:var(--mut)}
+.cta{display:flex;flex-wrap:wrap;gap:.8rem;margin:1.5rem 0}
+.btn{display:inline-block;padding:.8rem 1.5rem;border-radius:99px;background:var(--amber);color:var(--ink);font:600 1rem var(--f1);text-decoration:none;border:2px solid var(--amber);transition:transform .2s}
+.btn:hover{transform:translateY(-3px)}.btn.ghost{background:none;color:var(--paper);border-color:rgba(239,232,218,.4)}
+.sec{padding:clamp(4rem,10vw,8rem) clamp(1rem,4vw,3rem)}.dark{background:var(--ink2)}
+.wrap{max-width:74rem;margin:auto}.center{text-align:center}.center .cta{justify-content:center}
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(2rem,6vw,5rem)}
+.two p+p{margin-top:1rem}.sub{color:var(--mut);margin-bottom:2rem;max-width:42rem}
+.facts{list-style:none;padding:0;display:grid;gap:1.2rem;align-content:start}
+.facts li{border-left:3px solid var(--amber);padding-left:1rem;color:var(--mut)}
+.facts b{display:block;font:800 2.4rem var(--f1);color:var(--paper)}
+.strip{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.8rem}
+.strip button,.filters button,.mini{font:500 .95rem var(--f1);color:var(--paper);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:.5rem 1.1rem;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
+.strip button[aria-selected=true],.filters button[aria-pressed=true]{background:var(--amber);color:var(--ink);border-color:var(--amber)}
+.stage{margin-top:1.5rem;padding:2rem;border-radius:var(--r);background:rgba(0,0,0,.25);min-height:9rem;display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center}
+.stage .big{font:800 clamp(3rem,8vw,6rem)/1 var(--f1);color:var(--amber)}
+.filters{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(16rem,100%),1fr));gap:1rem}
+.card{text-align:left;font:inherit;color:inherit;cursor:pointer;background:var(--ink2);border:1px solid rgba(255,255,255,.1);border-radius:var(--r);padding:1.3rem;display:flex;flex-direction:column;gap:.5rem;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--amber);transform:translateY(-4px)}
+.card b{font:600 1.15rem var(--f1)}.card span{font-size:.98rem;color:var(--mut);line-height:1.45}
+.card i{font:normal .85rem var(--f1);color:var(--cyan);margin-top:auto}
+.screen{border-radius:var(--r);overflow:hidden;border:1px solid rgba(255,255,255,.15);background:#000}
+.screen-bar,.modal-bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.6rem 1rem;font:500 .95rem var(--f1);background:#06101a}
+.screen iframe{width:100%;height:min(80vh,720px);border:0;display:block;background:#fff}
+.vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(20rem,1fr));gap:1rem}.vids.one{grid-template-columns:minmax(0,52rem)}
+.vid{position:relative;aspect-ratio:16/9;border:0;padding:0;border-radius:var(--r);overflow:hidden;cursor:pointer;background:#000 center/cover}
+.vid img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s,opacity .3s;opacity:.85}
+.vid:hover img{transform:scale(1.06);opacity:1}
+.vid::after{content:"▶";position:absolute;inset:0;display:grid;place-items:center;font-size:2.2rem;color:var(--amber);text-shadow:0 2px 20px #000}
+.vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.tl{border-left:2px solid rgba(255,255,255,.2);padding-left:1.5rem;display:grid;gap:1.8rem;margin-top:1.5rem}
+.tl h4{font:600 1.15rem var(--f1)}.tl small{font:.9rem var(--f1);color:var(--amber)}.tl p{font-size:1rem;color:#d0c9ba}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}.chips span{font:.85rem var(--f1);padding:.25rem .7rem;border-radius:99px;background:rgba(255,255,255,.07)}
+.plain{list-style:none;padding:0;display:grid;gap:.7rem;font-size:1rem;color:#d0c9ba}.small{font-size:.9rem;color:var(--mut);margin-top:1rem}
+.modal{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;background:var(--ink)}.modal[hidden]{display:none}
+.modal-body{flex:1}.modal-body iframe{width:100%;height:100%;border:0;background:#fff}
+@media(max-width:800px){.two{grid-template-columns:1fr}.stage{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.vid:has(iframe)::after{display:none}
+
+.uni{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(19rem,100%),1fr));gap:1.2rem}
+.showcase .uni{grid-template-columns:repeat(3,minmax(0,1fr))}
+.item{display:flex;flex-direction:column;gap:.5rem;min-width:0}
+.item .cap{display:flex;justify-content:space-between;align-items:center;gap:.5rem;font:600 1.05rem var(--f1)}
+.item .cap small{font:400 .9rem var(--f1);color:var(--mut)}
+.vid{width:100%}
+.vid.play{display:grid;place-items:center;text-align:center;color:var(--paper);font:800 clamp(1.4rem,2.6vw,2.2rem)/1.1 var(--f1);background:radial-gradient(circle at 30% 30%,#2a5f8a,#0b1620 70%)}
+.vid.play iframe{background:#fff}
+.vid.play:has(iframe)::before{display:none}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.panel{padding:1.6rem;border-radius:var(--r);border:1px solid rgba(255,255,255,.12)}
+.panel h4{font:800 2rem var(--f1);margin-bottom:.5rem}.panel p{font-size:1rem;color:#d0c9ba}
+.hw{background:linear-gradient(160deg,rgba(242,180,90,.14),transparent)}.hw h4{color:var(--amber)}
+.td{background:linear-gradient(160deg,rgba(116,212,226,.14),transparent)}.td h4{color:var(--cyan)}
+.skillgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(16rem,100%),1fr));gap:1rem}
+.cols{grid-template-columns:repeat(2,1fr);column-gap:2rem}
+.pubs li{padding-left:1rem;border-left:2px solid var(--cyan)}
+.plain a{color:var(--cyan)}
+@media(max-width:600px){.showcase .uni{grid-template-columns:1fr}}@media(max-width:900px){.duo,.cols{grid-template-columns:1fr}}
+.bul{margin:.4rem 0 1rem 1.2rem;padding:0;color:#d9d2c3;columns:2;column-gap:2rem}.bul li{break-inside:avoid;padding:.1rem 0}
+.teach{margin-top:1.2rem;padding:1.2rem;border-radius:var(--r);background:rgba(0,0,0,.25)}.teach h5{font:600 1.05rem var(--f1);color:var(--amber);margin-bottom:.8rem}
+@media(max-width:600px){.bul{columns:1}}
+
+html{-webkit-text-size-adjust:100%}img,iframe,canvas{max-width:100%}
+.chips span,.pubs li,.plain li,.tl p,.tl h4{overflow-wrap:anywhere}
+@media(max-width:700px){
+ body{font-size:1.02rem}
+ .nav{flex-direction:column;align-items:flex-start;gap:.3rem;padding:.7rem 1rem .9rem;background:linear-gradient(var(--ink) 70%,transparent)}
+ .nav nav{width:100%;overflow-x:auto;gap:1.1rem;padding-bottom:.2rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .nav nav a{white-space:nowrap;padding:.35rem 0}
+ .hero{padding:9rem 1rem 3rem;align-items:center}
+ .hero::after{background:linear-gradient(rgba(11,22,32,.55),rgba(11,22,32,.85))}
+ .kicker{font-size:.85rem}.lede{font-size:1.1rem}
+ h1{font-size:clamp(2.4rem,11vw,3.4rem)}
+ .btn{padding:.85rem 1.3rem}.cta{gap:.6rem}
+ .sec{padding:3.5rem 1rem}
+ .panel{padding:1.2rem}.tl{padding-left:1rem}.teach{padding:1rem}
+ .modal-bar{flex-wrap:wrap;padding:.5rem .8rem}.modal-bar strong{font-size:.95rem}
+ .mini{padding:.55rem 1rem}
+ .grid{grid-template-columns:1fr}
+}
+@media(max-width:400px){.skillgrid{grid-template-columns:1fr}}
+
+/* ===== v3: cinematic layer ===== */
+body.lock{overflow:hidden}
+.boot{position:fixed;inset:0;z-index:200;display:grid;place-items:center;cursor:pointer;animation:bootfail 0s 7s forwards}
+@keyframes bootfail{to{visibility:hidden;pointer-events:none}}
+.curtain{position:absolute;left:0;right:0;height:50%;background:var(--ink);transition:transform .95s cubic-bezier(.7,0,.2,1)}
+.curtain.t{top:0;border-bottom:1px solid rgba(242,180,90,.5)}.curtain.b{bottom:0}
+.boot.open .t{transform:translateY(-100%)}.boot.open .b{transform:translateY(100%)}
+.boot-in{position:relative;text-align:center;transition:opacity .3s}.boot.open .boot-in{opacity:0}
+.pct{font:800 clamp(5rem,20vw,12rem)/1 var(--f1);letter-spacing:-.04em}.pct::after{content:"%";color:var(--amber);font-size:.35em;margin-left:.1em}
+.bar{height:2px;background:rgba(255,255,255,.15);width:min(20rem,70vw);margin:1rem auto}.bar i{display:block;height:100%;background:var(--amber)}
+#bootMsg{color:var(--mut);font:500 1rem var(--f1)}
+#prog{position:fixed;top:0;left:0;right:0;height:3px;z-index:70;background:linear-gradient(90deg,var(--cyan),var(--amber));transform:scaleX(0);transform-origin:0 50%}
+.ring{position:fixed;left:0;top:0;width:34px;height:34px;border:1.5px solid var(--amber);border-radius:50%;pointer-events:none;z-index:90;opacity:0;transition:width .25s,height .25s,background .25s,opacity .3s}
+body.fine .ring{opacity:.8}.ring.big{width:64px;height:64px;background:rgba(242,180,90,.12)}
+.flare{position:absolute;left:0;right:0;top:50%;height:2px;z-index:1;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(116,212,226,.55) 30%,rgba(255,255,255,.8) 50%,rgba(116,212,226,.55) 70%,transparent);filter:blur(1px);mix-blend-mode:screen;opacity:.35;transition:top .25s ease-out}
+body:not(.ready) .hero-copy>*{animation-play-state:paused}
+/* hero: copy left, live 3D twin right */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center;gap:2rem}
+.hero-copy{max-width:none}.hero h1{font-size:clamp(2.6rem,6.2vw,5.8rem)}
+.kicker{max-width:34rem;line-height:1.5}
+.twin{position:relative;z-index:2;width:100%;aspect-ratio:1;max-height:72vh;justify-self:end;cursor:pointer}#twin{width:100%;height:100%;display:block}
+.hero::after{background:linear-gradient(90deg,rgba(11,22,32,.75) 0,transparent 60%),linear-gradient(transparent 65%,var(--ink))}
+/* section rhythm: one header pattern, one content width */
+.sec>.wrap>h2,.sec>.wrap.two>div>h2{position:relative;padding-top:1.1rem}
+.sec h2::before{content:"";position:absolute;top:0;left:0;width:3.2rem;height:3px;background:var(--amber)}
+.center h2::before{left:50%;transform:translateX(-50%)}
+.sec .wrap+.wrap{margin-top:0}
+.two{align-items:start}.facts{position:sticky;top:6rem}
+/* split reveal */
+.split{position:relative;height:clamp(230px,34vw,400px);border-radius:var(--r);overflow:hidden;border:1px solid rgba(255,255,255,.14);touch-action:pan-y;cursor:ew-resize;margin-bottom:1rem;user-select:none}
+.split canvas{width:100%;height:100%;display:block}
+.handle{position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--paper);pointer-events:none}
+.handle span{position:absolute;top:50%;left:50%;width:2.8rem;height:2.8rem;border-radius:50%;background:var(--ink);border:2px solid var(--paper);transform:translate(-50%,-50%);display:grid;place-items:center;font:700 .95rem var(--f1)}
+.lab{position:absolute;top:1rem;font:700 1.05rem var(--f1);padding:.2rem .7rem;border-radius:99px;background:rgba(11,22,32,.7)}.lab.l{left:1rem;color:var(--amber)}.lab.r{right:1rem;color:var(--cyan)}
+.duo{align-items:stretch}
+/* experience as an aligned ledger */
+.tl{border:0;padding:0;gap:0;margin-top:1rem}
+.row{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.5rem;padding:1.6rem 0;border-top:1px solid rgba(255,255,255,.12);position:relative}
+.row::after{content:"";position:absolute;top:-1px;left:0;height:2px;width:0;background:var(--amber);transition:width 1s cubic-bezier(.2,.7,.2,1)}.row.on::after{width:11rem}
+.row small{font:500 .95rem/1.4 var(--f1);color:var(--amber);padding-top:.35rem}
+.row h4{font:600 1.35rem/1.25 var(--f1);margin-bottom:.5rem}.row h4 .org{display:block;font:400 1rem var(--f1);color:var(--mut);margin-top:.15rem}
+.row p+p{margin-top:.6rem}.row p{font-size:1.02rem}
+.teach{margin-top:1.2rem}
+.sec h3{margin-top:3.2rem}.sec h3:first-child{margin-top:0}
+/* tiles */
+.vid,.card{transition:transform .2s ease-out,border-color .2s;will-change:transform}
+.vid::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.28),transparent 55%)}
+.vid:hover::before{opacity:1}.vid:has(iframe)::before{display:none}
+.item .cap{padding:0 .2rem}
+/* simulation tools */
+.tools{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.5rem}.tools .filters{margin:0}
+.find{display:flex;gap:.5rem}.find input{font:1rem var(--f1);padding:.5rem 1rem;border-radius:99px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--paper);width:14rem;min-width:0}
+.find input::placeholder{color:var(--mut)}
+.card{background:linear-gradient(160deg,var(--ink2),var(--ink))}
+@media(max-width:900px){
+ .hero{grid-template-columns:1fr;gap:0;padding-top:7.5rem}.twin{order:-1;aspect-ratio:16/10;max-height:36vh;justify-self:center}
+ .facts{position:static}.row{grid-template-columns:1fr;gap:.3rem}.row.on::after{width:5rem}
+}
+@media(max-width:700px){.find{width:100%}.find input{flex:1;width:auto}.hero{padding:7.5rem 1rem 3rem}.lab{font-size:.9rem}}
+.row p{max-width:68ch}.sub{max-width:44rem}
+.group+.group{margin-top:3rem}.group h3{margin-top:0}
+.sec.showcase .wrap>.sub{margin-bottom:1rem}
+@media(min-width:601px) and (max-width:900px){.showcase .uni{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.filters button[aria-pressed]{}
+
+/* ===== sample work: one section, three subsections ===== */
+.work .worknav{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.2rem 0 3.2rem}
+.work .worknav a:hover{border-color:var(--amber);color:var(--amber)}
+.sub-sec{scroll-margin-top:6rem}
+.sub-sec+.sub-sec{margin-top:clamp(4rem,8vw,6.5rem);padding-top:clamp(2.5rem,5vw,4rem);border-top:1px solid rgba(255,255,255,.14)}
+.sub-sec>h3.st{font:800 clamp(1.7rem,3.4vw,2.6rem)/1.1 var(--f1);color:var(--paper);margin:0 0 .5rem}
+.sub-sec>.sub{margin-bottom:1.8rem}
+.uni.c4{grid-template-columns:repeat(4,minmax(0,1fr))}.uni.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.c5 .item .cap{font-size:.95rem}.c5 .item .cap small{font-size:.82rem;line-height:1.35;display:block;margin-top:.15rem}
+.modal-body.video{display:grid;place-items:center;background:#000}
+.modal-body.video iframe{width:min(100vw,calc((100vh - 3.6rem)*16/9));height:auto;aspect-ratio:16/9;background:#000}
+@media(max-width:1100px){.uni.c4,.uni.c5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.uni.c4,.uni.c5{grid-template-columns:1fr}.uni.c5.thin{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.work .worknav .mini{white-space:normal;text-align:left;border-radius:var(--r)}
+
+/* visible bullet lists everywhere */
+.bl{list-style:none;padding:0;margin:.6rem 0 0;display:grid;gap:.65rem;font-size:1.02rem;color:#d9d2c3}
+.bl li{position:relative;padding-left:1.5rem;line-height:1.55;overflow-wrap:anywhere}
+.bl li::before{content:"";position:absolute;left:.1rem;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--amber)}
+.bl .bl{margin-top:.55rem;gap:.4rem}.bl .bl li::before{width:.4rem;height:.4rem;background:none;border:2px solid var(--cyan);box-sizing:border-box}
+.bl.cols{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:2.5rem}
+.bl.cols li{break-inside:avoid}
+.bul{list-style:none;padding:0;margin:.6rem 0 1.2rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem 2rem;color:#d9d2c3}
+.bul li{position:relative;padding-left:1.5rem;columns:auto}
+.bul li::before{content:"";position:absolute;left:.1rem;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--amber)}
+.row .bl{margin-top:.2rem}
+@media(max-width:900px){.bl.cols,.bul{grid-template-columns:1fr}}
+.sec h2+.bl{margin-top:1.4rem}.sec h3+.bl{margin-top:.8rem}
+
+/* portfolio identity */
+.logo{display:inline-flex;align-items:center;gap:.6rem}
+.logo-tag{font:600 .72rem var(--f1);letter-spacing:.06em;text-transform:uppercase;color:var(--amber);border:1px solid rgba(242,180,90,.55);border-radius:99px;padding:.15rem .6rem}
+.badge{display:inline-flex;align-items:center;gap:.6rem;font:600 .95rem var(--f1);color:var(--amber);border:1px solid rgba(242,180,90,.5);background:rgba(242,180,90,.08);border-radius:99px;padding:.4rem 1rem;margin-bottom:1.2rem}
+.badge i{width:.5rem;height:.5rem;border-radius:50%;background:var(--amber);box-shadow:0 0 12px var(--amber)}
+.boot-tag{font:600 1rem var(--f1);color:var(--amber);margin-bottom:.4rem}
+
+/* nine game tiles: three even rows */
+.uni.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1100px){.uni.c3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.uni.c3{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body class="lock">
+<div class="boot" id="boot" aria-hidden="true"><div class="curtain t"></div><div class="curtain b"></div>
+  <div class="boot-in"><p class="boot-tag">Tahani A. Ghobon · Portfolio</p><div class="pct" id="pct">0</div><div class="bar"><i id="bar"></i></div><p id="bootMsg">Initializing the digital twin</p></div></div>
+<div id="prog" aria-hidden="true"></div><div class="ring" id="ring" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="spot" id="spot" aria-hidden="true"></div>
+
+<header class="nav">
+  <a href="#top" class="logo">Tahani A. Ghobon<span class="logo-tag">Portfolio</span></a>
+  <nav>
+    <a href="#cv">CV</a><a href="#experience">Experience</a><a href="#research">Research</a>
+    <a href="#work">Sample Work</a><a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero">
+  <canvas id="world" aria-hidden="true"></canvas><div class="flare" id="flare" aria-hidden="true"></div>
+  <div class="hero-copy">
+    <p class="badge"><i></i>Portfolio · Tahani A. Ghobon</p>
+    <p class="kicker">Creative Technologist · Digital Twin and Virtual Lab Creator · 3D Educational Game Creator · Instructional Designer · Engineering Educator</p>
+    <h1>I engineer things<br>you can <span id="verb">touch</span>.</h1>
+    <p class="lede">An engineer who builds both sides of an interactive experience: the hardware that senses and moves, and the 3D world that shows it.</p>
+    <div class="cta">
+      <a class="btn" href="#cv">Read my CV</a>
+      <a class="btn ghost" href="#work">Sample Work</a>
+    </div>
+  </div>
+  <div class="twin" id="twinBox"><canvas id="twin" role="img" aria-label="Interactive 3D wireframe that morphs when clicked"></canvas></div>
+</section>
+
+<section class="sec" id="cv">
+  <div class="wrap two">
+    <div>
+      <h2>Profile</h2>
+      <p>An educator, instructional designer, and creative technologist with 8+ years of experience in education, training, research, and instructional design.</p>
+      <p>I design and develop interactive 3D digital twins, educational games, virtual labs, and simulations from concept to completion, combining 3D artistry, engineering, technology, and creative storytelling.</p>
+      <p>My end-to-end creation process includes:</p>
+      <ul class="bul">
+        <li>3D Modeling</li><li>Texturing &amp; Materials</li><li>Lighting &amp; Rendering</li><li>Animation</li><li>Storytelling &amp; Concept Development</li><li>Scriptwriting &amp; Storyboarding</li><li>Interactivity &amp; User Experience</li><li>Game Logic &amp; Programming</li><li>Hardware Integration &amp; Physical Computing</li>
+      </ul>
+      <p>I also explore AI-powered creative tools and emerging technologies to transform ideas into engaging, interactive, and immersive digital experiences.</p>
+    </div>
+    <ul class="facts">
+      <li><b>8+</b> years in education, training, research, and instructional design</li>
+      <li><b>MITx</b> MicroMasters in Statistics and Data Science, 2024</li>
+      <li><b>BSc</b> in Electrical Engineering (Power), JUST, 2018</li>
+    </ul>
+  </div>
+  <div class="wrap">
+    <h3>Two sides of one engineer</h3>
+    <div class="split" id="split" aria-label="Drag to compare hardware and 3D"><canvas id="splitC"></canvas><div class="handle" id="handle"><span>‹ ›</span></div><b class="lab l">Hardware</b><b class="lab r">3D</b></div>
+    <div class="duo">
+      <div class="panel hw"><h4>Hardware &amp; Integration</h4><p>I work with sensors, controllers, and electronic components to build physical computing projects, connect hardware with software, and develop interactive digital twins that communicate with real devices.</p></div>
+      <div class="panel td"><h4>3D &amp; Interactive Experiences</h4><p>I create 3D models, textures, lighting, animations, and interactive environments. I develop 3D and 360° CGI experiences, VR environments, and playable games.</p></div>
+    </div>
+    <h3>Core skills</h3>
+    <div class="skillgrid" id="skills"></div>
+  </div>
+</section>
+
+<section class="sec dark" id="experience">
+  <div class="wrap">
+    <h2>Work experience</h2>
+    <div class="tl" id="jobs"></div>
+    <h3>Beyond the classroom</h3>
+    <div class="tl" id="nonTeach"></div>
+    <h3>Judging and academic support</h3>
+    <ul class="bl cols" id="judging"></ul>
+    <h3>Data science and engineering projects</h3>
+    <ul class="bl" id="projects"></ul>
+    <h3>Online and blended learning initiatives</h3>
+    <ul class="bl" id="online"></ul>
+  </div>
+</section>
+
+<section class="sec" id="research">
+  <div class="wrap two">
+    <div>
+      <h2>Research publications</h2>
+      <ul class="bl" id="papers"></ul>
+    </div>
+    <div>
+      <h2>Education</h2>
+      <ul class="bl" id="edu"></ul>
+      <h3>Courses</h3>
+      <ul class="bl" id="courses"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec dark work" id="work">
+  <div class="wrap">
+    <p class="kicker">Selected work</p>
+    <h2>Sample Work</h2>
+    <nav class="worknav" aria-label="Sample work sections"><a class="mini" href="#games">Games, virtual experiences and interactive simulations</a><a class="mini" href="#scenes">3D scenes</a></nav>
+
+    <div class="sub-sec" id="games">
+      <h3 class="st">Games, virtual experiences and interactive simulations</h3>
+      <p class="sub">Samples of educational games, virtual experiences, and interactive simulations that I created.</p>
+      <div class="uni c3" id="gameGrid"></div>
+    </div>
+
+    <div class="sub-sec" id="scenes">
+      <h3 class="st">3D scenes</h3>
+      <p class="sub">Samples of 3D scenes, each modeled, textured, lit, animated, and rendered by me.</p>
+      <div class="uni c5 thin" id="reel"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="contact">
+  <div class="wrap center">
+    <h2>Let’s build something people can explore.</h2>
+    <div class="cta">
+      <a class="btn" href="https://jo.linkedin.com/in/tahani-ghobon" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn" href="https://www.youtube.com/@tahani_ghobon" target="_blank" rel="noopener">YouTube</a>
+      <a class="btn" href="https://www.instagram.com/tahani_ghobon/" target="_blank" rel="noopener">Instagram</a>
+    </div>
+    <p class="small">© <span id="yr"></span> Tahani A. Ghobon</p>
+  </div>
+</section>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-bar"><strong id="mTitle"></strong>
+    <span><a class="mini" id="mOpen" target="_blank" rel="noopener">New tab</a> <button class="mini" id="mClose">Close ✕</button></span></div>
+  <div class="modal-body" id="mBody"></div>
+</div>
+
+<script>
+/* EDIT HERE: all portfolio content lives in this file. */
+// Games section: each item is a YouTube video id, shown in the order listed.
+const GAMES=[
+ {title:"Historical Place Game",sub:"3D educational game",id:"3YJmAtWx0pc"},
+ {title:"Football Game",sub:"3D educational game",id:"F2rhlfZOPJU"},
+ {title:"Virtual Induction Motor",sub:"Virtual experiment",id:"lesSJ7-lgrE"},
+ {title:"Engineering interactive simulations",sub:"Interactive simulations",id:"DO9kZQvfKyI"},
+ {title:"Virtual Transformer",sub:"Virtual experiment",id:"nX70qrTDyvw"},
+ {title:"MathVerse",sub:"Math arcade game",id:"mLmZmSR9tpw"},
+ {title:"Card games",sub:"Educational card games",id:"32IW1DQ5w-Y"},
+ {title:"VR Experience",sub:"Virtual reality",id:"QX6AD-tporM"}
+];
+const SCENES=["grww8Nlq-5g","jUFqNFBA2Fk","_tma4of9l-M","2vGZcxmvxZg","E7yzpRI0ysw","L9dRoPzUqKU","gBQyibEhdYg","5uRz0t4OTAM","AFVKJFmvtO0","sxa3nDeaDrQ"].map((id,i)=>({id,title:"3D scene "+(i+1)}));
+const VERBS=["touch","play","explore","tinker with","step into"];
+
+// ---- CV ----
+
+const SKILLS={
+"Digital twins and virtual labs":["Digital twins","3D games","Virtual labs and simulations","Interactive 3D and 360 CGI environments","VR experiences","Arduino-linked twins","Interactive dashboards"],
+"3D, programming and data tools":["Blender","UPBGE","Python","Arduino","MATLAB","SIMULINK","Vibe coding","AI tools","Machine learning","Data analytics"],
+"Instructional design and teaching":["Instructional design","Course creation","Online and blended learning","Moodle and LMS implementation","Game-based learning and gamification","STEAM education","Higher education","Educational facilitation","Education technology","Assessment planning and quality assurance (IV/LIV)","Teaching","Research"],
+"Media and creative production":["Storytelling","Storyboarding","Scriptwriting","Video editing","Video production planning and media supervision","CGI","3D design","Content creation","Design","Canva","Teleprompter","AI-generated images, audio, 3D objects and HDRI"]
+};
+
+const JOBS=[
+["Oct 2024 – Present","Instructional Designer","D.Learn Center, Al-Hussein Technical University (HTU)",[
+ "Collaborate with subject matter experts (SMEs) across computing, engineering, sciences, languages, and architecture to design theoretical and practical online and blended courses, from identifying the nature of each course and defining learning outcomes to guiding SMEs through planning, design, development, production, review, implementation, and student feedback.",
+ "Write scripts, develop storyboards, and design interactive content to improve learner engagement.",
+ "Supervise media production to ensure high-quality educational materials.",
+ "Create interactive dashboards for analysis and education to support data-driven decision-making and continuous improvement.",
+ "Create VR experiences and interactive experiments."]],
+["Sep 2018 – Sep 2024","Research and Teaching Assistant","Al-Hussein Technical University (HTU)",[
+ "Contributed beyond teaching to research, academic projects, content creation, and extracurricular activities.",
+ "Delivered courses and laboratory sessions for Pearson and HTU units (5 courses and 15 laboratories).",
+ "Served as Internal Verifier (IV) and Lead Internal Verifier (LIV) for several courses."]],
+["Apr 2024 – Sep 2024","Research Assistant","Energy Department, HTU",[
+ "Worked with Dr. Khalid Al-Zareer on the project “Development of Comprehensive Software for Energy Efficiency and Management: HTU-…”."]],
+["Apr 2018 – Aug 2018","Trainer and Teacher","Genius Academy",[
+ "Taught Electrical Machines and Drives, Electronics, Power Electronics, and Numerical Analysis."]],
+["Jan 2017 – Jun 2018","Trainee Designer Engineer (volunteer)","Center of Excellence for Innovation Projects, Jordan University of Science and Technology",[
+ "Participated in several projects, including a wireless power charger and fixed-wing and drone controllers."]]
+];
+const COURSES_TAUGHT=["Electrical Machines","Engineering Mathematics","Further Mathematics","STEM I","STEM II"];
+const LABS_TAUGHT=["Introduction to AI and Data Science","Data Analytics, Industrial Electronics and Storage","Power Systems","Electrical Machines","Electrical and Electronic Principles","Further Mathematics","Engineering Mathematics","Digital Principles","VHDL/FPGA","Further Electrical, Electronic and Digital","Electronic Circuits and Devices","Engineering Science","Mechatronics Systems"];
+
+const NON_TEACH=[
+["2023 – Present","HTU Film Club, Founder and Supervisor",["Founded the club out of a passion for cinema, as a platform for film appreciation, discussion, and creative exchange.","Organized cultural, scientific, and entertainment film screenings.","Established collaborations with multiple organizations and stakeholders, building strategic partnerships that enriched the content, expanded audience engagement, and increased the club’s impact."]],
+["Oct 2022 – Oct 2024","Head of SET Newsletter, Media and Website Committee",["Managed the SET Newsletter and oversaw media and website content.","Designed and directed a series of short educational videos with professors on electrical, mechanical, and energy engineering, which also enhanced the college’s visibility and strengthened its outreach to students and the academic community."]],
+["2021 – Oct 2022","HTU Educational YouTube Channel Supervisor",["Created educational content.","Supervised the scientific content produced by colleagues.","Managed and published the content on the HTU Educational Channel."]],
+["2020 – 2024","Eco-Car Project, co-funded by Erasmus+",["Project aim: to develop a multidisciplinary diploma in electrical and hybrid vehicles while fostering collaboration between companies and higher education institutions.","Prepared educational materials and documentation and conducted workshops.",["Participated in two funded workshops on Electrical and Hybrid Vehicles:",["National Technical University of Athens, Greece, 25–29 September 2023","University of Deusto, Spain, 9–13 January 2023"]]]]
+];
+const JUDGING=["Judge, Sumo Robotics Competition, 2023","ISEF Jordan Projects Supervisor, 2024","Referee, Sumo Robotics Competition, 2024","University Liaison Officer at HTU, Crown Prince Award for Best Government Service Application, 2025–2026","Focal Point and Academic Supervisor, FinTech Rally Hackathon 2026"];
+const PROJ=[
+["In data science and machine learning, I led and collaborated on projects with students and colleagues:",["Analyzing movie data","Predicting success with machine learning","Forecasting revenue","NLP for film review classification and sentiment analysis"]],
+["Our work also included:",["Real estate predictions","Medical diagnosis","Exploring search algorithms and classic AI games"]],
+["In engineering and education, I worked on practical projects such as:",["A wireless charger","An electric formula car","A home automation system","Robots"]]
+];
+const ONLINE=[
+["In 2020 and 2021, I taught several online labs:",["Practical labs in which experiments were converted into simulations in SIMULINK and Multisim to imitate reality","Programming labs using MATLAB"]],
+["I worked with the Online Learning Center (OLC) at Al-Hussein Technical University to create several online courses, including:",["Building Services Pathway","Electrical Machines"]]
+];
+const PAPERS=[
+"Ghobon, T. A., Tutunji, T., & Al-Sharif, L. Identification of Low-Power Artificial Intelligence Algorithms: Review, Comparison, and Selection. Energy (under review).",
+"Al-Sharif, L., Peters, R., Appleby, M., & Ghaben, T. (2025). Using machine learning in order to estimate the traffic mix in a building from the stops data. 16th Symposium on Lift and Escalator Technologies, 16(1), 7–18.",
+"Al-Sharif, L., Peters, R., Appleby, M., & Ghaben, T. (2024). Estimating the Traffic Mix in a Building by Analysing the Stops Data per Round Trip. 15th Symposium on Lift and Escalator Technologies, 15, 7–14.",
+"Al Fahoum, A., & Ghobon, T. A. (2023). Performance predictions of Sci-Fi Films via machine learning. Applied Sciences, 13(7), 4312.",
+"Al Fahoum, A., & Ghobon, T. A. (2023). Accurate Machine Learning Predictions of Sci-Fi Film Performance. Journal of New Media, 5(1).",
+"The Use of Artificial Intelligence and Robotics in Middle School Students to Artificial Intelligence and Robotics (2022), 1(24). Published in Arabic.",
+"Al-Fahoum, A., & Ghobon, T. (2020). An Applied Approach for Speed Estimation of Induction Motors Using Sensorless Flux Observer System with sliding mode field oriented control. Technology, 11(6), 109–122."
+];
+const EDU=["MicroMasters Program in Statistics and Data Science – Massachusetts Institute of Technology (MIT) / edX, 2024","BSc in Electrical Engineering (Power) – Jordan University of Science and Technology, 2018. Grade: Excellent","Secondary Education, Scientific Stream – Jerash Secondary School, 2013. GPA: 94.1"];
+const COURSES=["Data Analysis: Statistical Modeling and Computation in Applications – MITx MicroMasters (edX), Sep 2024","Fundamentals of Statistics – MITx MicroMasters (edX), May 2024","Machine Learning with Python: From Linear Models to Deep Learning – MITx MicroMasters (edX), Dec 2023","Probability: The Science of Uncertainty and Data – MITx MicroMasters (edX), Sep 2023","Keeping Students Engaged: Building Strong Student/Teacher Connections in a Remote Learning Environment – Microsoft, Jun 2020","Staying Connected with Remote Learning through Microsoft Teams and Office 365 – Microsoft, Jun 2020","Assessment Planning and Assignment Writing, Engineering RQF BTEC Higher Nationals – Pearson, Jan 2019","EDIBON Teaching Units, Area of Energy – EDIBON, Jan 2019","The Art of Storytelling – Pixar Animation Studios, 2026"];
+
+</script>
+<script>
+const $=s=>document.querySelector(s);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let heroVis=true;
+/* cinematic intro: count up, then the curtains part */
+(function(){
+  const b=$('#boot'),done=()=>{if(b.dataset.d)return;b.dataset.d=1;b.classList.add('open');document.body.classList.remove('lock');document.body.classList.add('ready');setTimeout(()=>b.remove(),1100)};
+  if(reduce){done();return}
+  const msgs=[[0,'Initializing the digital twin'],[40,'Loading 3D scenes'],[80,'Connecting the hardware'],[100,'Ready']];
+  const t0=performance.now(),D=1900;
+  (function tick(n){const p=Math.min(1,(n-t0)/D),e=p*p*(3-2*p),v=Math.round(e*100);
+    $('#pct').textContent=v;$('#bar').style.width=v+'%';$('#bootMsg').textContent=msgs.filter(x=>v>=x[0]).pop()[1];
+    p<1?requestAnimationFrame(tick):setTimeout(done,250)})(t0);
+  b.onclick=done;
+})();
+/* scroll progress */
+addEventListener('scroll',()=>{const d=document.documentElement;$('#prog').style.transform=`scaleX(${scrollY/(d.scrollHeight-innerHeight||1)})`},{passive:true});
+new IntersectionObserver(e=>{heroVis=e[0].isIntersecting}).observe(document.querySelector('.hero'));
+
+/* cursor spotlight */
+addEventListener('pointermove',e=>{$('#spot').style.setProperty('--x',e.clientX+'px');$('#spot').style.setProperty('--y',e.clientY+'px')});
+
+/* rotating verb */
+let vi=0;if(!reduce)setInterval(()=>{vi=(vi+1)%VERBS.length;$('#verb').textContent=VERBS[vi]},2200);
+
+/* hero: live wireframe terrain reacting to the cursor */
+(function(){
+  const c=$('#world'),x=c.getContext('2d');let W,H,m={x:.6,y:.4,on:0},t=0;
+  const COLS=46,ROWS=30;
+  const size=()=>{const d=devicePixelRatio||1;W=c.width=c.clientWidth*d;H=c.height=c.clientHeight*d};
+  addEventListener('resize',size);size();
+  c.parentElement.addEventListener('pointermove',e=>{m.x=e.clientX/innerWidth;m.y=e.clientY/innerHeight;m.on=1});
+  function pt(i,j){
+    const nx=i/COLS-.5,nz=j/ROWS;
+    const d=Math.hypot(nx-(m.x-.5)*1.2,nz-(1-m.y)*1.1);
+    let h=Math.sin(i*.35+t)*Math.cos(j*.3+t*.7)*.05+Math.sin(i*.12-t*.5)*.06;
+    h+=Math.exp(-d*d*28)*.22*Math.sin(t*3-d*18)*m.on+Math.exp(-d*d*28)*.1*m.on;
+    const z=nz*3+.35,s=1/z;
+    return[W/2+nx*W*1.9*s*.55+(m.x-.5)*-60*s,H*.42+(.55-h*4)*H*.5*s,s]}
+  function frame(){
+    if(!heroVis){requestAnimationFrame(frame);return}
+    x.clearRect(0,0,W,H);x.lineWidth=Math.max(1,W/1400);
+    const P=[];for(let j=0;j<=ROWS;j++){P[j]=[];for(let i=0;i<=COLS;i++)P[j][i]=pt(i,j)}
+    for(let j=0;j<=ROWS;j++){x.beginPath();for(let i=0;i<=COLS;i++){const p=P[j][i];i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1])}
+      x.strokeStyle=`rgba(116,212,226,${.04+.24*(1-j/ROWS)})`;x.stroke()}
+    for(let i=0;i<=COLS;i+=2){x.beginPath();for(let j=0;j<=ROWS;j++){const p=P[j][i];j?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1])}
+      x.strokeStyle='rgba(242,180,90,.1)';x.stroke()}
+    t+=.012;if(!reduce)requestAnimationFrame(frame)}
+  frame();
+})();
+
+/* video modal */
+const modal=$('#modal');
+function openVideo(v){$('#mTitle').textContent=v.title||'Video';$('#mOpen').href='https://www.youtube.com/watch?v='+v.id;$('#mBody').className='modal-body video';
+  $('#mBody').innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0" title="${v.title||'Video'}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;modal.hidden=false;document.body.style.overflow='hidden';$('#mClose').focus()}
+function closeSim(){modal.hidden=true;$('#mBody').innerHTML='';document.body.style.overflow=''}
+$('#mClose').onclick=closeSim;addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closeSim()});
+
+/* media tiles: every tile is the same 16:9 box */
+function item(parent,{title,sub},tile,extra){
+  const w=document.createElement('div');w.className='item';w.append(tile);
+  if(title){const c=document.createElement('div');c.className='cap';c.innerHTML=`<span>${title}${sub?`<br><small>${sub}</small>`:''}</span>`;if(extra)c.append(extra);w.append(c)}
+  parent.append(w)}
+function ytTile(v){
+  const b=document.createElement('button');b.className='vid';b.setAttribute('aria-label','Play '+(v.title||'video'));
+  b.innerHTML=`<img loading="lazy" alt="${v.title||''}" src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg">`;b.onclick=()=>openVideo(v);return b}
+GAMES.forEach(g=>item($('#gameGrid'),g,ytTile(g)));
+SCENES.forEach(v=>item($('#reel'),{title:''},ytTile(v)));
+
+/* CV content */
+const li=a=>a.map(x=>Array.isArray(x)?`<li>${x[0]}<ul class="bl sub">${li(x[1])}</ul></li>`:`<li>${x}</li>`).join('');
+$('#skills').innerHTML=Object.entries(SKILLS).map(([k,v])=>`<div><p class="small" style="margin:0 0 .5rem">${k}</p><div class="chips">${v.map(s=>`<span>${s}</span>`).join('')}</div></div>`).join('');
+const teach=`<div class="teach"><h5>Teaching at HTU</h5><div class="two"><div><p class="small">Courses taught (5)</p><div class="chips">${COURSES_TAUGHT.map(s=>`<span>${s}</span>`).join('')}</div></div><div><p class="small">Laboratories taught (15)</p><div class="chips">${LABS_TAUGHT.map(s=>`<span>${s}</span>`).join('')}</div></div></div></div>`;
+$('#jobs').innerHTML=JOBS.map(([d,r,o,p])=>`<div class="row"><small>${d}</small><div><h4>${r}<span class="org">${o}</span></h4><ul class="bl">${li(p)}</ul>${r==='Research and Teaching Assistant'?teach:''}</div></div>`).join('');
+$('#nonTeach').innerHTML=NON_TEACH.map(([d,h,p])=>`<div class="row"><small>${d}</small><div><h4>${h}</h4><ul class="bl">${li(p)}</ul></div></div>`).join('');
+const rowIO=new IntersectionObserver((en,ob)=>en.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');ob.unobserve(x.target)}}),{threshold:.3});document.querySelectorAll('.row').forEach(r=>rowIO.observe(r));
+$('#judging').innerHTML=li(JUDGING);$('#projects').innerHTML=li(PROJ);
+$('#online').innerHTML=li(ONLINE);$('#papers').innerHTML=li(PAPERS);$('#edu').innerHTML=li(EDU);$('#courses').innerHTML=li(COURSES);
+$('#yr').textContent=new Date().getFullYear();
+
+/* hero digital twin: a wire that morphs between a knot, a coil, a lattice and a globe */
+(function(){
+  const c=$('#twin'),x=c.getContext('2d'),N=343;let W,H,mx=.5,my=.5,yaw=0,pit=0,k=0,t=0;
+  const F=[u=>{const a=u*6.2832,r=Math.cos(3*a)+2;return[r*Math.cos(2*a)*.33,r*Math.sin(2*a)*.33,-Math.sin(3*a)*.4]},
+   u=>{const a=u*50.27;return[Math.cos(a)*.55,(u-.5)*2.1,Math.sin(a)*.55]},
+   (u,i)=>{const l=Math.floor(i/49),r=Math.floor(i%49/7);let q=i%49%7;if(r%2)q=6-q;return[(q-3)*.3,(r-3)*.3,(l-3)*.3]},
+   u=>{const p=Math.acos(1-2*u),a=u*88;return[Math.sin(p)*Math.cos(a)*1.05,Math.cos(p)*1.05,Math.sin(p)*Math.sin(a)*1.05]}];
+  const S=F.map(f=>Array.from({length:N},(_,i)=>f(i/(N-1),i)));let cur=S[0].map(p=>p.slice());
+  const size=()=>{const d=devicePixelRatio||1;W=c.width=c.clientWidth*d;H=c.height=c.clientHeight*d};addEventListener('resize',size);size();
+  const box=$('#twinBox');
+  addEventListener('pointermove',e=>{mx=e.clientX/innerWidth;my=e.clientY/innerHeight});
+  box.onclick=()=>{k=(k+1)%S.length};if(!reduce)setInterval(()=>{k=(k+1)%S.length},6500);
+  function frame(){
+    if(heroVis){x.clearRect(0,0,W,H);
+    for(let i=0;i<N;i++)for(let a=0;a<3;a++)cur[i][a]+=(S[k][i][a]-cur[i][a])*.06;
+    yaw+=((mx-.5)*3+t*.4-yaw)*.05;pit+=((my-.5)*1.3-pit)*.05;
+    const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pit),sp=Math.sin(pit),sc=Math.min(W,H)*.42,P=[];
+    for(const[px,py,pz]of cur){const x1=px*cy+pz*sy,z1=-px*sy+pz*cy,y1=py*cp-z1*sp,z2=py*sp+z1*cp,s=1/(2.1-z2);P.push([W/2+x1*s*sc*1.8,H/2+y1*s*sc*1.8,s])}
+    const pulse=(t*70)%N;x.lineWidth=Math.max(2,W/260);
+    for(let i=1;i<N;i++){const u=i/N,a=P[i-1],b=P[i];x.strokeStyle=`rgba(${242-126*u|0},${180+32*u|0},${90+136*u|0},${Math.min(1,b[2]*1.2)})`;x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke()}
+    for(let i=0;i<N;i+=3){const p=P[i],d=Math.abs(i-pulse),g=Math.max(0,1-d/18);x.fillStyle=g>0?`rgba(255,240,200,${.4+g*.6})`:'rgba(239,232,218,.55)';x.beginPath();x.arc(p[0],p[1],(1.2+g*5)*p[2]*devicePixelRatio,0,6.3);x.fill()}
+    t+=.012}
+    if(!reduce)requestAnimationFrame(frame)}
+  frame();
+})();
+
+/* hardware / 3D reveal slider */
+(function(){
+  const box=$('#split'),c=$('#splitC'),x=c.getContext('2d'),hd=$('#handle');let W,H,pos=0,target=.5,tr=[],chips=[],t=0,vis=false;
+  const build=()=>{const d=devicePixelRatio||1;W=box.clientWidth;H=box.clientHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0);const g=26;tr=[];
+    for(let n=0;n<40;n++){let px=Math.round(Math.random()*W/g)*g,py=Math.round(Math.random()*H/g)*g;const pts=[[px,py]];
+      for(let s=0;s<6;s++){if(s%2)px+=(Math.random()<.5?-1:1)*g*(1+Math.floor(Math.random()*4));else py+=(Math.random()<.5?-1:1)*g*(1+Math.floor(Math.random()*3));pts.push([px,py])}tr.push({pts,o:Math.random()})}
+    chips=[[.14,.34],[.3,.68],[.44,.24]].map(([a,b])=>[a*W,b*H]);if(!vis||reduce)draw()};
+  const at=(pts,f)=>{const L=[];let T=0;for(let i=1;i<pts.length;i++){const l=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);L.push(l);T+=l}let d=f*T;
+    for(let i=0;i<L.length;i++){if(d<=L[i]||i==L.length-1){const r=L[i]?d/L[i]:0;return[pts[i][0]+(pts[i+1][0]-pts[i][0])*r,pts[i][1]+(pts[i+1][1]-pts[i][1])*r]}d-=L[i]}};
+  function circuit(){x.fillStyle='#10202d';x.fillRect(0,0,W,H);x.lineWidth=1.5;
+    tr.forEach(q=>{x.strokeStyle='rgba(242,180,90,.28)';x.beginPath();q.pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();
+      const p=at(q.pts,(t*.18+q.o)%1);x.fillStyle='#ffd58a';x.shadowColor='#f2b45a';x.shadowBlur=10;x.beginPath();x.arc(p[0],p[1],2.6,0,6.3);x.fill();x.shadowBlur=0});
+    chips.forEach(([a,b])=>{x.fillStyle='#0b1620';x.strokeStyle='#f2b45a';x.lineWidth=2;x.fillRect(a,b,84,52);x.strokeRect(a,b,84,52);for(let i=0;i<5;i++){x.fillStyle='#f2b45a';x.fillRect(a+8+i*16,b-6,4,6);x.fillRect(a+8+i*16,b+52,4,6)}})}
+  function mesh(){const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#0c2a3a');g.addColorStop(1,'#07131c');x.fillStyle=g;x.fillRect(0,0,W,H);
+    const cx=W*.72,cy=H*.52,R=Math.min(W*.2,H*.32),r=R*.42,a=t*.5,b=.55+Math.sin(t*.3)*.25,U=30,V=14,pt=(u,v)=>{const uu=u/U*6.283,vv=v/V*6.283,X=(R+r*Math.cos(vv))*Math.cos(uu),Y=(R+r*Math.cos(vv))*Math.sin(uu),Z=r*Math.sin(vv);
+      const x1=X*Math.cos(a)-Z*Math.sin(a),z1=X*Math.sin(a)+Z*Math.cos(a),y1=Y*Math.cos(b)-z1*Math.sin(b),z2=Y*Math.sin(b)+z1*Math.cos(b),s=500/(500+z2);return[cx+x1*s,cy+y1*s,s]};
+    x.lineWidth=1;for(let u=0;u<U;u++)for(let v=0;v<V;v++){const p=pt(u,v),q=pt(u+1,v),w=pt(u,v+1);x.strokeStyle=`rgba(116,212,226,${.25+.5*(p[2]-.7)})`;x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);x.moveTo(p[0],p[1]);x.lineTo(w[0],w[1]);x.stroke()}}
+  function draw(){circuit();x.save();x.beginPath();x.rect(pos*W,0,W,H);x.clip();mesh();x.restore();hd.style.left=pos*100+'%'}
+  function loop(){pos+=(target-pos)*.08;t+=.016;draw();if(vis&&!reduce)requestAnimationFrame(loop)}
+  const set=e=>{const r=box.getBoundingClientRect();target=Math.max(.02,Math.min(.98,(e.clientX-r.left)/r.width))};
+  let down=false;box.addEventListener('pointerdown',e=>{down=true;set(e)});addEventListener('pointerup',()=>down=false);
+  box.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||down)set(e)});
+  box.tabIndex=0;box.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')target=Math.max(.02,target-.06);if(e.key==='ArrowRight')target=Math.min(.98,target+.06)});
+  addEventListener('resize',build);build();
+  new IntersectionObserver(e=>{vis=e[0].isIntersecting;if(vis&&!reduce)loop()}).observe(box);if(reduce){pos=target;draw()}
+})();
+
+/* tilt on tiles, magnetic buttons, cursor ring, lens flare */
+(function(){
+  let tl=null;
+  addEventListener('pointermove',e=>{if(e.pointerType!=='mouse'||reduce)return;
+    const el=e.target.closest&&e.target.closest('.vid,.card');if(tl&&tl!==el){tl.style.transform='';tl=null}
+    if(el&&!el.querySelector('iframe')){tl=el;const r=el.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;
+      el.style.transform=`perspective(800px) rotateY(${px*9}deg) rotateX(${-py*9}deg) translateY(-4px)`;el.style.setProperty('--gx',(px+.5)*100+'%');el.style.setProperty('--gy',(py+.5)*100+'%')}
+    const bt=e.target.closest&&e.target.closest('.btn');document.querySelectorAll('.btn').forEach(b=>{if(b!==bt)b.style.translate=''});
+    if(bt){const r=bt.getBoundingClientRect();bt.style.translate=`${(e.clientX-r.left-r.width/2)*.2}px ${(e.clientY-r.top-r.height/2)*.3}px`}});
+  const h=$('.hero');h.addEventListener('pointermove',e=>{$('#flare').style.top=(e.clientY-h.getBoundingClientRect().top)+'px'});
+  if(matchMedia('(pointer:fine)').matches&&!reduce){const r=$('#ring');document.body.classList.add('fine');let X=0,Y=0,tx=0,ty=0;
+    addEventListener('pointermove',e=>{tx=e.clientX;ty=e.clientY;r.classList.toggle('big',!!e.target.closest('a,button,.vid,.card,input,#split,#twinBox'))});
+    (function l(){X+=(tx-X)*.18;Y+=(ty-Y)*.18;r.style.transform=`translate(${X}px,${Y}px) translate(-50%,-50%)`;requestAnimationFrame(l)})()}
+})();
+
+</script>
+</body>
+</html>
